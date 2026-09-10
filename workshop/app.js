@@ -61,7 +61,6 @@
   document.querySelectorAll(".skill-pick").forEach((btn) => {
     btn.addEventListener("click", () => setSkill(btn.dataset.skill));
   });
-  document.getElementById("change-skill").addEventListener("click", () => showSkillPicker(true));
   document.getElementById("reset-progress").addEventListener("click", resetProgress);
   document.getElementById("pin-map-btn").addEventListener("click", () => setHidden(els.drawer, false));
   document.getElementById("pin-map-close").addEventListener("click", () => setHidden(els.drawer, true));
@@ -323,26 +322,47 @@
     toggleSidebar(false);
   }
 
+  function goToUnlock() {
+    const i = steps.findIndex((s) => s.id === "unlock");
+    if (i < 0) {
+      showGate("After lunch, type the code the facilitator says on the last morning card.", false);
+      return;
+    }
+    hideGate();
+    state.index = i;
+    localStorage.setItem(STORAGE.step, String(state.index));
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function renderNav() {
     els.nav.innerHTML = "";
+    let afternoonUmbrella = false;
     window.PLAYBOOK.modules.forEach((mod) => {
       const locked = mod.phase === "afternoon" && !afternoonOpen();
-      const label = document.createElement("p");
-      label.className = "mod-label" + (locked ? " locked-mod" : "");
-      label.textContent = locked ? mod.teaser || "Locked until afternoon" : mod.title;
-      els.nav.appendChild(label);
-
       if (locked) {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "nav-step locked";
-        btn.innerHTML = `<span class="nav-idx">—</span><span>Opens after lunch</span>`;
-        btn.addEventListener("click", () => {
-          showGate("Those labs stay hidden until after lunch. Your facilitator will give the unlock code.", false);
+        if (afternoonUmbrella) return;
+        afternoonUmbrella = true;
+        const wrap = document.createElement("div");
+        wrap.className = "afternoon-lock";
+        wrap.innerHTML =
+          `<p class="mod-label locked-mod">Afternoon labs</p>` +
+          `<h3>Locked until lunch</h3>` +
+          `<p>Three kit labs sit under this one section. After lunch, type the code the facilitator says on the last morning card.</p>` +
+          `<button type="button" class="nav-step locked"><span class="nav-idx">—</span><span>Go to unlock</span></button>`;
+        wrap.querySelector("button").addEventListener("click", (e) => {
+          e.stopPropagation();
+          goToUnlock();
         });
-        els.nav.appendChild(btn);
+        wrap.addEventListener("click", goToUnlock);
+        els.nav.appendChild(wrap);
         return;
       }
+
+      const label = document.createElement("p");
+      label.className = "mod-label";
+      label.textContent = mod.title;
+      els.nav.appendChild(label);
 
       mod.steps.forEach((step) => {
         const i = steps.findIndex((s) => s.id === step.id);
@@ -380,12 +400,14 @@
       : "";
 
     els.view.innerHTML = `
+      <div class="step-inner">
       <p class="step-kicker">${step.moduleTitle}</p>
       <h1>${step.title}</h1>
       ${step.html}
       ${quizHtml}
       ${checkHtml}
       ${facHtml}
+      </div>
     `;
   }
 

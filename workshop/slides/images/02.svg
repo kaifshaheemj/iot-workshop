@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
-  <rect width="1920" height="1080" fill="#fffdf8"/>
-  <rect x="0" y="0" width="18" height="1080" fill="#0d7a6c"/>
-  <text x="120" y="180" font-family="Times New Roman, Times, serif" font-size="56" fill="#1c2433">Sense ’ decide ’ act</text>
-  <text x="120" y="360" font-family="Calibri, Arial, sans-serif" font-size="36" fill="#1c2433">1. A pin reads a number from the world.</text>
-  <text x="120" y="460" font-family="Calibri, Arial, sans-serif" font-size="36" fill="#1c2433">2. Code compares that number to a rule.</text>
-  <text x="120" y="560" font-family="Calibri, Arial, sans-serif" font-size="36" fill="#1c2433">3. An LED, motor, or web page changes.</text>
-  <text x="120" y="720" font-family="Calibri, Arial, sans-serif" font-size="28" fill="#5d6b80">Digital is HIGH or LOW. Analog on ESP32 is usually 04095.</text>
-</svg>

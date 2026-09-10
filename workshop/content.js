@@ -122,14 +122,15 @@ window.PLAYBOOK = {
           checkpoint: "I will wait for the facilitator before typing the unlock code.",
           facilitator: "Say the word AFTERNOON out loud after kits are on the tables. Or send students to ?phase=afternoon. Rehearse with ?role=facilitator.",
           html: `
-            <p class="lede">Morning stops here on purpose. The three kit labs stay locked so the room stays curious.</p>
-            <p>After lunch, when the kit is on your table, type the code your facilitator says.</p>
+            <p class="lede">Morning stops here on purpose. All afternoon labs stay under one locked section in the sidebar until this code is accepted.</p>
+            <p>After lunch, when the kit is on your table, type the word your facilitator says out loud, then click Unlock labs.</p>
             <div class="unlock-box">
-              <p><strong>Afternoon unlock</strong></p>
+              <h2>Afternoon unlock</h2>
+              <p>One code opens every lab. You will not need a separate code for each project.</p>
               <input type="text" data-unlock-input autocomplete="off" placeholder="Code from the facilitator" />
               <button type="button" class="nav-btn-next" data-unlock-submit>Unlock labs</button>
             </div>
-            <p class="note">Facilitators can always preview labs: add <code>?role=facilitator</code> to this page’s URL.</p>
+            <p class="note">Still locked? You are on the right page — wait for the spoken code. Facilitators can preview with <code>?role=facilitator</code>.</p>
           `,
         },
       ],
