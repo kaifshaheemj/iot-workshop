@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Morning slides — University IoT workshop</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="slides.css" />
+</head>
+<body class="slides-page">
+  <header class="slides-bar">
+    <a class="slides-back" href="index.html">Playbook</a>
+    <p class="slides-title" id="deck-title">Morning theory</p>
+    <p class="slides-count" id="slide-count">Slide —</p>
+    <button type="button" class="ghost-btn" id="btn-fullscreen">Fullscreen</button>
+  </header>
+
+  <main class="slides-stage" id="stage">
+    <img id="slide-img" alt="Workshop slide" hidden />
+    <div class="slides-fallback" id="fallback" hidden>
+      <p class="eyebrow">Morning theory</p>
+      <h1>Export the prep-book here</h1>
+      <p>File → Download → PNG from the Google deck, then drop <code>01.png</code>, <code>02.png</code>, … into <code>workshop/slides/images/</code> and refresh. This slider does not unlock afternoon labs.</p>
+    </div>
+  </main>
+
+  <div class="slides-dots" id="dots" hidden></div>
+
+  <footer class="slides-controls">
+    <button type="button" class="nav-btn" id="btn-prev">Back</button>
+    <p class="slides-hint">Left / Right keys · swipe on a phone · F for fullscreen</p>
+    <button type="button" class="nav-btn nav-btn-next" id="btn-next">Next</button>
+  </footer>
+
+  <script src="slides.js"></script>
+</body>
+</html>

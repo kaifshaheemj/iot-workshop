@@ -1,0 +1,74 @@
+name: Pages and workshop zips
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: workshop-pages
+  cancel-in-progress: true
+
+jobs:
+  pages:
+    name: Deploy GitHub Pages
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble site (playbook + slider under /workshop/)
+        run: |
+          mkdir -p _site/workshop
+          cp -a workshop/. _site/workshop/
+          touch _site/.nojekyll _site/workshop/.nojekyll
+          printf '%s\n' \
+            '<!DOCTYPE html>' \
+            '<html lang="en"><head><meta charset="utf-8">' \
+            '<meta http-equiv="refresh" content="0; url=workshop/">' \
+            '<title>University IoT workshop</title>' \
+            '<link rel="canonical" href="workshop/">' \
+            '</head><body>' \
+            '<p><a href="workshop/">Open the workshop playbook</a></p>' \
+            '<p><a href="workshop/slides.html">Open morning slides</a></p>' \
+            '</body></html>' > _site/index.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4
+        id: deployment
+
+  zips:
+    name: Morning and afternoon zips
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build offline zip packs
+        run: |
+          mkdir -p dist
+          (cd workshop && zip -r ../dist/workshop-morning.zip . -x "*.git*")
+          mkdir -p pack/workshop pack/sketches
+          cp -a workshop/. pack/workshop/
+          cp -a sketches/traffic pack/sketches/
+          cp -a sketches/tripwire pack/sketches/
+          cp -a sketches/reaction pack/sketches/
+          printf '%s\n' 'Afternoon pack: open workshop/index.html. Arduino sketches are under sketches/traffic, sketches/tripwire, sketches/reaction.' > pack/README.txt
+          (cd pack && zip -r ../dist/workshop-afternoon.zip .)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: workshop-offline-zips
+          path: dist/*.zip
+      - name: Attach zips to git tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/workshop-morning.zip
+            dist/workshop-afternoon.zip
