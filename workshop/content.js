@@ -139,43 +139,133 @@ window.PLAYBOOK = {
       id: "traffic",
       title: "Lab 1 — Traffic and ambulance",
       phase: "afternoon",
-      teaser: "Afternoon 1 — locked until lunch",
+      teaser: "Afternoon 1 — build it one checkpoint at a time",
       steps: [
         {
           id: "traffic-goal",
-          title: "Lab 1 goal",
-          checkpoint: "I know success: lights cycle like a signal, an ambulance sound interrupts to green, and the web page shows the same status.",
+          title: "Start with the traffic signal story",
+          checkpoint: "I can explain the three parts: LEDs show the signal, the sound sensor requests priority, and the ESP32 page reports the state.",
           html: `
-            <p class="lede">Build a traffic light that cycles red / yellow / green. A loud ambulance-like sound interrupts the cycle and forces green. A page on the board shows the current state.</p>
-            <p>Join Wi-Fi <strong>TrafficLab</strong> and open <strong>http://192.168.4.1</strong>.</p>
-            <p class="note">Sketch folder (afternoon zip): <code>sketches/traffic/traffic.ino</code>. Tune SOUND_THRESHOLD from Serial.</p>
-          `,
-        },
-        {
-          id: "traffic-wire",
-          title: "Wire the traffic kit",
-          checkpoint: "Red, yellow, and green LEDs plus the sound sensor are wired. GPIO 18 is still empty if your kit reserved it.",
-          html: `
+            <p class="lede">You are going to build a small traffic signal in layers. First make one LED work, then make three LEDs cycle, then add a sound-triggered priority event, and finally observe everything from a page hosted by the ESP32.</p>
             <table class="data-table">
-              <thead><tr><th>Part</th><th>ESP32 (defaults — match your CONTEXT)</th></tr></thead>
+              <thead><tr><th>Feature</th><th>What you should see</th></tr></thead>
               <tbody>
-                <tr><td>Red LED</td><td>GPIO 25 through 220 ohm to GND</td></tr>
-                <tr><td>Yellow LED</td><td>GPIO 26 through 220 ohm to GND</td></tr>
-                <tr><td>Green LED</td><td>GPIO 27 through 220 ohm to GND</td></tr>
-                <tr><td>Sound sensor AO</td><td>GPIO 34 (ADC1)</td></tr>
-                <tr><td>Sound VCC / GND</td><td>3.3V / GND</td></tr>
+                <tr><td>Signal LEDs</td><td>Red, yellow, and green take turns</td></tr>
+                <tr><td>Sound input</td><td>A loud clap or siren-like sound requests green</td></tr>
+                <tr><td>Wi-Fi page</td><td>The board reports state, ambulance flag, sound peak, and threshold</td></tr>
               </tbody>
             </table>
-            <p>If your team’s CONTEXT uses different pins, change the <code>#define</code> lines at the top of the sketch, not the wiring story.</p>
+            <div class="callout warn"><p><strong>Safety:</strong> disconnect USB power before moving wires. Every LED needs its own 220 ohm resistor. The sensor uses 3.3 V logic.</p></div>
           `,
         },
         {
-          id: "traffic-run",
-          title: "Upload and prove it",
-          checkpoint: "Lights cycle, a clap or siren sound jumps to green, and the page at 192.168.4.1 matches.",
+          id: "traffic-prepare",
+          title: "Prepare the bench",
+          checkpoint: "I have the ESP32, breadboard, three LEDs, three 220 ohm resistors, a sound sensor, a USB data cable, and Arduino IDE ready.",
           html: `
-            <p>File → Open <code>sketches/traffic/traffic.ino</code>. Set baud 115200. Watch analog numbers, then set <code>SOUND_THRESHOLD</code> between quiet and siren.</p>
-            <p>Open the board page while joined to <strong>TrafficLab</strong>. The heading should follow the LEDs.</p>
+            <ul class="checklist">
+              <li><span>☐</span><span>ESP32 Dev Module and a USB <strong>data</strong> cable</span></li>
+              <li><span>☐</span><span>Breadboard and jumper wires</span></li>
+              <li><span>☐</span><span>Red, yellow, and green LEDs</span></li>
+              <li><span>☐</span><span>Three 220 ohm resistors — one per LED</span></li>
+              <li><span>☐</span><span>Sound sensor module with analog output AO</span></li>
+            </ul>
+            <p>In Arduino IDE, select <strong>ESP32 Dev Module</strong>, the correct port, and Serial Monitor speed <strong>115200</strong>. Open the final sketch only after completing the smaller wiring checkpoints below.</p>
+          `,
+        },
+        {
+          id: "traffic-one-led",
+          title: "Stage 1 — light one LED",
+          checkpoint: "The red LED blinks once per second, and I can identify its anode, cathode, resistor, and GPIO.",
+          html: `
+            <p>Start with only the red branch. The long LED leg is the anode. The short leg or flat edge is the cathode.</p>
+            <table class="data-table">
+              <thead><tr><th>From</th><th>To</th></tr></thead>
+              <tbody>
+                <tr><td>GPIO 25</td><td>220 ohm resistor → red LED anode</td></tr>
+                <tr><td>Red LED cathode</td><td>GND</td></tr>
+              </tbody>
+            </table>
+            <p>Use the staged sketch: <a href="../sketches/traffic/traffic_stage_01_led_check.ino" download><code>traffic_stage_01_led_check.ino</code></a>. If the LED stays dark, reverse it before changing code.</p>
+          `,
+        },
+        {
+          id: "traffic-three-leds",
+          title: "Stage 2 — build the automatic signal",
+          checkpoint: "Exactly one LED is on at a time: green, then yellow, then red. The three branches each have their own resistor.",
+          html: `
+            <p>Keep the red branch and add the other two. Do not share a resistor between LEDs.</p>
+            <table class="data-table">
+              <thead><tr><th>LED</th><th>GPIO path</th><th>Return</th></tr></thead>
+              <tbody>
+                <tr><td>Red</td><td>GPIO 25 → 220 ohm → anode</td><td>Cathode → GND</td></tr>
+                <tr><td>Yellow</td><td>GPIO 26 → 220 ohm → anode</td><td>Cathode → GND</td></tr>
+                <tr><td>Green</td><td>GPIO 27 → 220 ohm → anode</td><td>Cathode → GND</td></tr>
+              </tbody>
+            </table>
+            <p>Upload <a href="../sketches/traffic/traffic_stage_02_signal_cycle.ino" download><code>traffic_stage_02_signal_cycle.ino</code></a>. At this stage you are proving output timing only. The final repo sketch uses 3 seconds red, 1 second yellow, and 3 seconds green.</p>
+          `,
+        },
+        {
+          id: "traffic-sound",
+          title: "Stage 3 — wire and tune the sound sensor",
+          checkpoint: "The sound sensor is powered from 3.3 V, AO is on GPIO 34, and Serial Monitor shows a quiet reading and a higher reading after a sharp sound.",
+          html: `
+            <table class="data-table">
+              <thead><tr><th>Sound sensor pin</th><th>ESP32 connection</th><th>Purpose</th></tr></thead>
+              <tbody>
+                <tr><td>VCC</td><td>3.3 V</td><td>Power</td></tr>
+                <tr><td>GND</td><td>GND</td><td>Common ground</td></tr>
+                <tr><td>AO</td><td>GPIO 34</td><td>Analog sound level</td></tr>
+                <tr><td>DO</td><td>Leave unconnected</td><td>This repo sketch reads AO</td></tr>
+              </tbody>
+            </table>
+            <p>Upload <a href="../sketches/traffic/traffic_stage_03_sound_check.ino" download><code>traffic_stage_03_sound_check.ino</code></a>, then open Serial Monitor at <strong>115200</strong>. Watch the printed <code>sound=</code> value while the room is quiet, then make a sharp sound. The final sketch compares the peak to <code>SOUND_THRESHOLD</code>.</p>
+            <div class="callout warn"><p>Do not place the sound sensor on GPIO 18. That pin stays reserved and unused for the later buzzer add-on.</p></div>
+          `,
+        },
+        {
+          id: "traffic-web",
+          title: "Stage 4 — upload the working web sketch",
+          checkpoint: "The final traffic sketch is uploaded, the ESP32 creates TrafficLab Wi-Fi, and I can open its page at 192.168.4.1.",
+          html: `
+            <p>Open <code>sketches/traffic/traffic.ino</code> in Arduino IDE. The sketch keeps the page in <code>page.h</code>, so both files must remain in the same folder.</p>
+            <ol class="steps-ol">
+              <li>Upload with <strong>ESP32 Dev Module</strong> selected.</li>
+              <li>Open Serial Monitor at <strong>115200</strong> and wait for the access-point message.</li>
+              <li>Join Wi-Fi <strong>TrafficLab</strong> from your phone or laptop.</li>
+              <li>Open <strong>http://192.168.4.1</strong>. A “no internet” warning is normal.</li>
+            </ol>
+            <p>The page should show the same signal state as the LEDs, plus the live sound peak and threshold.</p>
+          `,
+        },
+        {
+          id: "traffic-finish",
+          title: "Stage 5 — prove the full system",
+          checkpoint: "The LEDs cycle, a loud sound forces green, the page marks the ambulance state, and the signal returns to its normal cycle.",
+          html: `
+            <table class="data-table">
+              <thead><tr><th>Test</th><th>Expected result</th></tr></thead>
+              <tbody>
+                <tr><td>Power on</td><td>Red starts and the automatic sequence begins</td></tr>
+                <tr><td>Automatic cycle</td><td>Red → yellow → green repeats</td></tr>
+                <tr><td>Sound event</td><td>Peak above threshold prints AMBULANCE and forces green</td></tr>
+                <tr><td>Web status</td><td>The page reports state, ambulance flag, sound peak, and threshold</td></tr>
+                <tr><td>Timeout</td><td>The priority green ends and the signal continues automatically</td></tr>
+              </tbody>
+            </table>
+            <div class="callout ok"><p><strong>Finish:</strong> if one sound does not trigger it, adjust <code>SOUND_THRESHOLD</code> using the live numbers. This is a classroom priority-override demonstration, not real emergency-vehicle recognition.</p></div>
+            <details class="accordion"><summary>Troubleshooting table</summary>
+              <table class="data-table">
+                <thead><tr><th>Symptom</th><th>First check</th><th>Then try</th></tr></thead>
+                <tbody>
+                  <tr><td>Upload fails</td><td>Correct board, port, and USB data cable</td><td>Hold BOOT while upload starts if your board needs it</td></tr>
+                  <tr><td>LED stays dark</td><td>LED orientation and resistor path</td><td>Check the breadboard row and GPIO number</td></tr>
+                  <tr><td>Sound never triggers</td><td>AO on GPIO 34 and 3.3 V power</td><td>Lower SOUND_THRESHOLD after observing Serial values</td></tr>
+                  <tr><td>Page does not open</td><td>Join TrafficLab, not campus Wi-Fi</td><td>Use the printed IP address and stay connected despite “no internet”</td></tr>
+                </tbody>
+              </table>
+            </details>
           `,
         },
       ],
