@@ -1,0 +1,30 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <rect width="1600" height="1000" fill="#f4f7fb"/>
+  <defs><style>
+    text{font-family:Arial,sans-serif}.title{font-size:42px;font-weight:700}.sub{font-size:21px;fill:#526174}.head{font-size:25px;font-weight:700}.label{font-size:19px;font-weight:700}.small{font-size:16px;fill:#425466}.pin text{font-size:16px;fill:#ffffff;font-weight:700}.wire{fill:none;stroke-width:6;stroke-linecap:round;stroke-linejoin:round}.panel{fill:white;stroke:#b8c5d4;stroke-width:3}
+  </style></defs>
+  <text x="60" y="62" class="title">Exercise 8 - Analog Clap Counter on SH1106 OLED</text>
+  <text x="60" y="98" class="sub">Each clap detected from microphone A0 increments Count : n</text>
+
+  <rect x="570" y="165" width="460" height="660" rx="35" fill="#16324a" stroke="#0b2032" stroke-width="6"/>
+  <text x="800" y="225" text-anchor="middle" font-size="31" font-weight="700" style="fill:#fff">ESP32 DEV MODULE</text>
+  <g class="pin"><text style="fill:#fff" x="605" y="335">3V3</text><text style="fill:#fff" x="605" y="455">GPIO34 MIC A0</text><text style="fill:#fff" x="605" y="575">GND</text><text style="fill:#fff" x="995" y="365" text-anchor="end">GPIO21 SDA</text><text style="fill:#fff" x="995" y="465" text-anchor="end">GPIO22 SCL</text><text style="fill:#fff" x="995" y="565" text-anchor="end">3V3</text><text style="fill:#fff" x="995" y="665" text-anchor="end">GND</text></g>
+  <g fill="#3182ce"><circle cx="570" cy="328" r="12"/><circle cx="570" cy="448" r="12"/><circle cx="570" cy="568" r="12"/><circle cx="1030" cy="358" r="12"/><circle cx="1030" cy="458" r="12"/><circle cx="1030" cy="558" r="12"/><circle cx="1030" cy="658" r="12"/></g>
+
+  <rect x="45" y="165" width="470" height="660" rx="25" class="panel"/><text x="280" y="210" text-anchor="middle" class="head">RED MICROPHONE MODULE</text>
+  <rect x="115" y="255" width="330" height="300" rx="24" fill="#c74444" stroke="#862c2c" stroke-width="6"/><circle cx="280" cy="360" r="65" fill="#c8d0d8" stroke="#526174" stroke-width="5"/><circle cx="280" cy="360" r="26" fill="#4a5568"/>
+  <rect x="160" y="465" width="240" height="50" rx="10" fill="#f8fafc"/><text x="280" y="497" text-anchor="middle" class="small">VCC  GND  D0  A0</text>
+  <path d="M515 328H570" class="wire" stroke="#e53e3e"/><path d="M515 448H570" class="wire" stroke="#805ad5"/><path d="M515 568H570" class="wire" stroke="#252d38"/>
+  <g class="small"><text x="425" y="315">VCC: 3V3</text><text x="425" y="435">A0 only</text><text x="440" y="555">GND</text></g>
+  <rect x="90" y="610" width="380" height="145" rx="18" fill="#eef9f0" stroke="#2f855a" stroke-width="3"/><text x="280" y="652" text-anchor="middle" class="label">MICROPHONE POWER: 3.3 V</text><text x="280" y="686" text-anchor="middle" class="small">A0 to GPIO34; D0 not connected</text><text x="280" y="718" text-anchor="middle" class="small">Keep quiet during startup calibration</text>
+
+  <rect x="1080" y="165" width="475" height="660" rx="25" class="panel"/><text x="1317" y="210" text-anchor="middle" class="head">SH1106 128x64 OLED</text>
+  <rect x="1150" y="260" width="335" height="280" rx="18" fill="#176aa0" stroke="#0d466d" stroke-width="6"/><rect x="1185" y="295" width="265" height="180" rx="8" fill="#081923" stroke="#9edcf5" stroke-width="3"/>
+  <text x="1317" y="400" text-anchor="middle" font-size="30" font-weight="700" style="fill:#dff8ff">Count : 12</text><text x="1317" y="515" text-anchor="middle" font-size="15" style="fill:#fff">GND  VCC  SCL  SDA</text>
+  <path d="M1030 358H1080" class="wire" stroke="#3182ce"/><path d="M1030 458H1080" class="wire" stroke="#d69e2e"/><path d="M1030 558H1080" class="wire" stroke="#e53e3e"/><path d="M1030 658H1080" class="wire" stroke="#252d38"/>
+  <g class="small"><text x="1095" y="345">SDA: GPIO21</text><text x="1095" y="445">SCL: GPIO22</text><text x="1095" y="545">OLED VCC: 3V3</text><text x="1095" y="645">OLED GND</text></g>
+  <rect x="1130" y="690" width="375" height="80" rx="16" fill="#e7f5ff" stroke="#3182ce" stroke-width="3"/><text x="1317" y="723" text-anchor="middle" class="label">SERIAL MONITOR: 115200 baud</text><text x="1317" y="752" text-anchor="middle" class="small">Shows A0, signal level and count</text>
+
+  <rect x="70" y="860" width="1460" height="100" rx="22" fill="#e9f7ef" stroke="#2f855a" stroke-width="4"/>
+  <text x="105" y="900" class="head">Arduino libraries to install</text><text x="105" y="935" class="small">Adafruit GFX Library + Adafruit SH110X</text>
+</svg>

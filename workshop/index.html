@@ -3,46 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>University IoT Workshop</title>
+  <title>IoT Build Lab — Anna University</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div id="skill-overlay" class="overlay">
-    <div class="overlay-card">
-      <p class="eyebrow">University workshop</p>
-      <h1>How much have you done before today?</h1>
-      <p class="lede">Morning is theory. Afternoon is a hands-on surprise with the kit on your table. Same labs for everyone.</p>
-      <div class="skill-grid">
-        <button type="button" class="skill-pick" data-skill="beginner">
-          <span class="skill-kicker">Start here</span>
-          <strong>New to this</strong>
-          <span>Never done a hardware lab. Extra explainers stay on.</span>
-        </button>
-        <button type="button" class="skill-pick" data-skill="some">
-          <span class="skill-kicker">Short recap</span>
-          <strong>Some experience</strong>
-          <span>You have seen a breadboard or IDE. Light recap, then the day.</span>
-        </button>
-        <button type="button" class="skill-pick" data-skill="expert">
-          <span class="skill-kicker">Skip theory</span>
-          <strong>I have done this before</strong>
-          <span>Theory cards stay collapsed.</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
   <div class="app">
     <aside class="sidebar" id="sidebar">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true"></span>
         <div>
-          <p class="brand-kicker">Student playbook</p>
-          <p class="brand-title">University IoT workshop</p>
+          <p class="brand-kicker">Anna University workshop</p>
+          <p class="brand-title">IoT Build Lab</p>
         </div>
         <button type="button" class="icon-btn sidebar-close" id="sidebar-close" aria-label="Close menu">×</button>
       </div>
-      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-heading">
+        <span>Workshop map</span>
+        <span id="sidebar-progress">0 complete</span>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav" aria-label="Workshop steps"></nav>
       <div class="sidebar-foot">
         <button type="button" class="text-btn" id="reset-progress">Reset progress</button>
       </div>
@@ -51,29 +30,32 @@
     <div class="workspace">
       <header class="topbar">
         <button type="button" class="icon-btn menu-btn" id="menu-btn" aria-label="Open modules">☰</button>
+        <div class="location-wrap">
+          <p id="current-phase">Morning</p>
+          <strong id="current-module">Start here</strong>
+        </div>
         <div class="progress-wrap">
           <div class="progress-meta">
             <span id="progress-label">Step 1 of 1</span>
-            <span id="skill-badge">—</span>
           </div>
           <div class="progress-track" aria-hidden="true">
             <div class="progress-fill" id="progress-fill"></div>
           </div>
         </div>
-        <a class="ghost-btn" href="slides.html" style="text-decoration:none;display:inline-block">Slides</a>
-        <button type="button" class="ghost-btn" id="pin-map-btn">Reference</button>
+        <a class="ghost-btn topbar-link" href="slides.html">Presentation</a>
+        <button type="button" class="ghost-btn" id="pin-map-btn">Pin reference</button>
       </header>
 
       <div id="gate-banner" class="gate-banner" hidden role="alert">
         <strong>Stay on this step.</strong>
         <span id="gate-banner-text">Tick the checkpoint below after you finish the work. Next will not move on until you do.</span>
       </div>
-      <article class="step-view" id="step-view"></article>
+      <main class="step-view" id="step-view" aria-live="polite"></main>
 
       <footer class="step-nav">
-        <button type="button" class="nav-btn" id="btn-back">Back</button>
-        <p class="nav-hint" id="nav-hint"></p>
-        <button type="button" class="nav-btn nav-btn-next" id="btn-next">Next</button>
+        <button type="button" class="nav-btn" id="btn-back">Previous</button>
+        <p class="nav-hint" id="nav-hint" aria-live="polite"></p>
+        <button type="button" class="nav-btn nav-btn-next" id="btn-next">Continue</button>
       </footer>
     </div>
   </div>

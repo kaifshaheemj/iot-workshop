@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <rect width="1600" height="1000" fill="#f4f7fb"/>
+  <defs><style>
+    text{font-family:Arial,sans-serif}.title{font-size:42px;font-weight:700}.sub{font-size:21px;fill:#526174}.head{font-size:25px;font-weight:700}.label{font-size:19px;font-weight:700}.small{font-size:16px;fill:#425466}.pin text{font-size:16px;fill:#ffffff;font-weight:700}.wire{fill:none;stroke-width:6;stroke-linecap:round;stroke-linejoin:round}.panel{fill:white;stroke:#b8c5d4;stroke-width:3}
+  </style></defs>
+  <text x="60" y="62" class="title">Exercise 4 - LDR Light Intensity on 16x2 LCD</text>
+  <text x="60" y="98" class="sub">Reads LDR A0 on GPIO34; LCD address is detected automatically at startup</text>
+
+  <rect x="575" y="175" width="450" height="650" rx="35" fill="#16324a" stroke="#0b2032" stroke-width="6"/>
+  <text x="800" y="235" text-anchor="middle" font-size="32" font-weight="700" style="fill:#fff">ESP32 DEV MODULE</text>
+  <g class="pin"><text style="fill:#fff" x="610" y="350">3V3</text><text style="fill:#fff" x="610" y="465">GPIO34 ADC</text><text style="fill:#fff" x="610" y="580">GND</text><text style="fill:#fff" x="990" y="330" text-anchor="end">VIN / 5V</text><text style="fill:#fff" x="990" y="430" text-anchor="end">GPIO21 SDA</text><text style="fill:#fff" x="990" y="530" text-anchor="end">GPIO22 SCL</text><text style="fill:#fff" x="990" y="630" text-anchor="end">GND</text></g>
+  <g fill="#3182ce"><circle cx="575" cy="343" r="12"/><circle cx="575" cy="458" r="12"/><circle cx="575" cy="573" r="12"/><circle cx="1025" cy="323" r="12"/><circle cx="1025" cy="423" r="12"/><circle cx="1025" cy="523" r="12"/><circle cx="1025" cy="623" r="12"/></g>
+
+  <rect x="55" y="205" width="455" height="550" rx="26" class="panel"/><text x="282" y="250" text-anchor="middle" class="head">LDR SENSOR MODULE</text>
+  <rect x="135" y="290" width="295" height="300" rx="24" fill="#c74444" stroke="#862c2c" stroke-width="5"/>
+  <circle cx="282" cy="400" r="70" fill="#f1d26a" stroke="#806b27" stroke-width="5"/><path d="M235 355L330 445M330 355L235 445" stroke="#8b6d22" stroke-width="9"/>
+  <rect x="175" y="505" width="215" height="48" rx="10" fill="#f8fafc"/><text x="282" y="536" text-anchor="middle" class="small">VCC  GND  A0  D0</text>
+  <path d="M430 343H575" class="wire" stroke="#e53e3e"/><path d="M430 458H575" class="wire" stroke="#805ad5"/><path d="M430 573H575" class="wire" stroke="#252d38"/>
+  <g class="small"><text x="445" y="330">VCC to 3V3</text><text x="445" y="445">A0 to GPIO34</text><text x="445" y="560">GND</text></g>
+  <rect x="95" y="635" width="375" height="80" rx="16" fill="#eef9f0" stroke="#2f855a" stroke-width="3"/><text x="282" y="670" text-anchor="middle" class="label">LDR POWER: 3.3 V</text><text x="282" y="697" text-anchor="middle" class="small">D0 is not connected</text>
+
+  <rect x="1080" y="205" width="465" height="550" rx="26" class="panel"/><text x="1312" y="250" text-anchor="middle" class="head">16x2 I2C LCD</text>
+  <rect x="1140" y="295" width="345" height="205" rx="12" fill="#2f855a" stroke="#1f5d3e" stroke-width="6"/><rect x="1172" y="330" width="280" height="112" rx="8" fill="#b9d66b" stroke="#3e5e28" stroke-width="4"/>
+  <text x="1195" y="373" font-family="monospace" font-size="25">Light:75%</text><text x="1195" y="416" font-family="monospace" font-size="25">ADC:3071</text>
+  <rect x="1220" y="510" width="185" height="70" rx="10" fill="#2867a0" stroke="#17466e" stroke-width="4"/><text x="1312" y="540" text-anchor="middle" font-size="15" fill="white">I2C BACKPACK</text><text x="1312" y="565" text-anchor="middle" font-size="14" fill="white">GND VCC SDA SCL</text>
+  <path d="M1025 323H1080" class="wire" stroke="#e53e3e"/><path d="M1025 423H1080" class="wire" stroke="#3182ce"/><path d="M1025 523H1080" class="wire" stroke="#d69e2e"/><path d="M1025 623H1080" class="wire" stroke="#252d38"/>
+  <g class="small"><text x="1095" y="315">LCD VCC: 5V</text><text x="1095" y="415">SDA: GPIO21</text><text x="1095" y="515">SCL: GPIO22</text><text x="1095" y="615">LCD GND</text></g>
+  <rect x="1120" y="625" width="385" height="110" rx="16" fill="#fff7e6" stroke="#d69e2e" stroke-width="3"/><text x="1312" y="658" text-anchor="middle" class="label">LCD POWER: 5 V</text><text x="1312" y="686" text-anchor="middle" class="small">Auto-detects 0x27 or 0x3F</text><text x="1312" y="715" text-anchor="middle" class="small">Use 3.3 V-safe I2C level shifting</text>
+
+  <rect x="70" y="845" width="1460" height="110" rx="22" fill="#e9f7ef" stroke="#2f855a" stroke-width="4"/>
+  <text x="105" y="888" class="head">Arduino library to install</text><text x="105" y="925" class="small">LiquidCrystal I2C - install it from Arduino Library Manager.</text>
+</svg>

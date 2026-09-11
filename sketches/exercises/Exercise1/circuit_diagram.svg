@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <rect width="1600" height="1000" fill="#f4f7fb"/>
+  <defs><style>
+    text{font-family:Arial,sans-serif}.title{font-size:44px;font-weight:700}.sub{font-size:22px;fill:#526174}.head{font-size:27px;font-weight:700}.label{font-size:20px;font-weight:700}.small{font-size:18px;fill:#425466}.pin text{font-size:18px;fill:#ffffff;font-weight:700}.wire{fill:none;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}.panel{fill:white;stroke:#b8c5d4;stroke-width:3}
+  </style></defs>
+  <text x="70" y="70" class="title">Exercise 1 - Four LED Chase</text>
+  <text x="70" y="108" class="sub">LEDs run 1 to 4, then return through LEDs 3 and 2</text>
+
+  <rect x="100" y="185" width="500" height="590" rx="30" fill="#15354d" stroke="#0b2235" stroke-width="6"/>
+  <rect x="240" y="220" width="220" height="55" rx="10" fill="#d7e0e8"/>
+  <text x="350" y="258" text-anchor="middle" class="head" style="fill:#fff">ESP32 DEV MODULE</text>
+  <g class="pin"><text style="fill:#fff" x="470" y="355">GPIO16</text><text style="fill:#fff" x="470" y="455">GPIO17</text><text style="fill:#fff" x="470" y="555">GPIO18</text><text style="fill:#fff" x="470" y="655">GPIO19</text><text style="fill:#fff" x="350" y="735" text-anchor="middle">GND</text></g>
+  <g fill="#4ea4df"><circle cx="600" cy="348" r="12"/><circle cx="600" cy="448" r="12"/><circle cx="600" cy="548" r="12"/><circle cx="600" cy="648" r="12"/></g><circle cx="350" cy="775" r="12" fill="#222"/>
+
+  <rect x="760" y="165" width="750" height="630" rx="30" class="panel"/>
+  <text x="1135" y="215" text-anchor="middle" class="head">LED BANK</text>
+  <g>
+    <path d="M612 348H820" class="wire" stroke="#805ad5"/><rect x="820" y="326" width="150" height="44" rx="10" fill="#fff3cd" stroke="#d39e00" stroke-width="3"/><text x="895" y="355" text-anchor="middle" class="label">220-330 ohm</text><path d="M970 348H1050" class="wire" stroke="#805ad5"/><circle cx="1100" cy="348" r="34" fill="#ff4d4f" stroke="#9e2022" stroke-width="5"/><text x="1180" y="355" class="label">LED 1</text>
+    <path d="M612 448H820" class="wire" stroke="#3182ce"/><rect x="820" y="426" width="150" height="44" rx="10" fill="#fff3cd" stroke="#d39e00" stroke-width="3"/><text x="895" y="455" text-anchor="middle" class="label">220-330 ohm</text><path d="M970 448H1050" class="wire" stroke="#3182ce"/><circle cx="1100" cy="448" r="34" fill="#ffd23f" stroke="#aa7d00" stroke-width="5"/><text x="1180" y="455" class="label">LED 2</text>
+    <path d="M612 548H820" class="wire" stroke="#16a085"/><rect x="820" y="526" width="150" height="44" rx="10" fill="#fff3cd" stroke="#d39e00" stroke-width="3"/><text x="895" y="555" text-anchor="middle" class="label">220-330 ohm</text><path d="M970 548H1050" class="wire" stroke="#16a085"/><circle cx="1100" cy="548" r="34" fill="#35c46a" stroke="#147a37" stroke-width="5"/><text x="1180" y="555" class="label">LED 3</text>
+    <path d="M612 648H820" class="wire" stroke="#e67e22"/><rect x="820" y="626" width="150" height="44" rx="10" fill="#fff3cd" stroke="#d39e00" stroke-width="3"/><text x="895" y="655" text-anchor="middle" class="label">220-330 ohm</text><path d="M970 648H1050" class="wire" stroke="#e67e22"/><circle cx="1100" cy="648" r="34" fill="#4da3ff" stroke="#205a9a" stroke-width="5"/><text x="1180" y="655" class="label">LED 4</text>
+  </g>
+  <path d="M1100 382V720H350V775M1100 482V720M1100 582V720M1100 682V720" class="wire" stroke="#273746"/>
+  <text x="1190" y="720" class="small">All cathodes to GND</text>
+
+  <rect x="90" y="835" width="1420" height="110" rx="22" fill="#e9f7ef" stroke="#2f855a" stroke-width="4"/>
+  <text x="125" y="880" class="head">Arduino libraries to install</text>
+  <text x="125" y="918" class="small">None - uses built-in ESP32 GPIO functions.</text>
+</svg>

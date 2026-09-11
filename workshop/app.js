@@ -1,44 +1,40 @@
 (function () {
   const prefix = window.PLAYBOOK_ID || "iot-day";
   const STORAGE = {
-    skill: prefix + "-skill",
     step: prefix + "-step",
     checks: prefix + "-checks",
     quizzes: prefix + "-quizzes",
+    visited: prefix + "-visited",
     afternoon: prefix + "-afternoon",
   };
-
-  const SKILL_LABEL = {
-    beginner: "New to this",
-    some: "Some experience",
-    expert: "I have done this before",
-  };
-
   const params = new URLSearchParams(location.search);
   const UNLOCK = (window.PLAYBOOK_META && window.PLAYBOOK_META.unlockCode) || "AFTERNOON";
-
   const state = {
-    skill: localStorage.getItem(STORAGE.skill) || "",
     index: Number(localStorage.getItem(STORAGE.step) || 0),
     checks: readJson(STORAGE.checks, {}),
     quizzes: readJson(STORAGE.quizzes, {}),
+    visited: readJson(STORAGE.visited, {}),
     facilitator: params.get("role") === "facilitator",
     afternoon: false,
   };
 
-  if (params.get("phase") === "afternoon") {
-    localStorage.setItem(STORAGE.afternoon, "1");
-  }
+  if (params.get("phase") === "afternoon") localStorage.setItem(STORAGE.afternoon, "1");
   state.afternoon =
     state.facilitator ||
     params.get("phase") === "afternoon" ||
     localStorage.getItem(STORAGE.afternoon) === "1";
 
   let steps = computeSteps();
-  if (state.index < 0 || state.index >= steps.length) state.index = 0;
+  if (state.facilitator && params.get("step")) {
+    const previewIndex = steps.findIndex((step) => step.id === params.get("step"));
+    if (previewIndex >= 0) state.index = previewIndex;
+  }
+  let reactionTimer = 0;
+  let reactionState = "idle";
+  let reactionGoAt = 0;
+  let reactionTarget = -1;
 
   const els = {
-    overlay: document.getElementById("skill-overlay"),
     nav: document.getElementById("sidebar-nav"),
     view: document.getElementById("step-view"),
     back: document.getElementById("btn-back"),
@@ -46,54 +42,52 @@
     hint: document.getElementById("nav-hint"),
     fill: document.getElementById("progress-fill"),
     label: document.getElementById("progress-label"),
-    badge: document.getElementById("skill-badge"),
     sidebar: document.getElementById("sidebar"),
     menu: document.getElementById("menu-btn"),
     close: document.getElementById("sidebar-close"),
     drawer: document.getElementById("pin-drawer"),
     gate: document.getElementById("gate-banner"),
     gateText: document.getElementById("gate-banner-text"),
+    currentPhase: document.getElementById("current-phase"),
+    currentModule: document.getElementById("current-module"),
+    sidebarProgress: document.getElementById("sidebar-progress"),
   };
 
   if (state.facilitator) document.body.classList.add("facilitator-on");
   applyMeta();
+  bindEvents();
+  render();
 
-  document.querySelectorAll(".skill-pick").forEach((btn) => {
-    btn.addEventListener("click", () => setSkill(btn.dataset.skill));
-  });
-  document.getElementById("reset-progress").addEventListener("click", resetProgress);
-  document.getElementById("pin-map-btn").addEventListener("click", () => setHidden(els.drawer, false));
-  document.getElementById("pin-map-close").addEventListener("click", () => setHidden(els.drawer, true));
-  els.drawer.addEventListener("click", (e) => {
-    if (e.target === els.drawer) setHidden(els.drawer, true);
-  });
-  els.back.addEventListener("click", () => go(-1));
-  els.next.addEventListener("click", tryNext);
-  els.menu.addEventListener("click", () => toggleSidebar(true));
-  els.close.addEventListener("click", () => toggleSidebar(false));
-
-  document.addEventListener("keydown", (e) => {
-    if (e.target.matches("input, textarea")) return;
-    if (e.key === "ArrowLeft") go(-1);
-    if (e.key === "ArrowRight") tryNext();
-  });
-
-  els.view.addEventListener("click", onViewClick);
-  els.view.addEventListener("change", onViewChange);
-  els.view.addEventListener("input", onViewInput);
-  els.view.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && e.target.matches("[data-unlock-input]")) {
-      e.preventDefault();
-      tryUnlock(e.target.value);
-    }
-  });
-
-  if (!state.skill) {
-    showSkillPicker(true);
-  } else {
-    showSkillPicker(false);
-    document.body.dataset.skill = state.skill;
-    render();
+  function bindEvents() {
+    document.getElementById("reset-progress").addEventListener("click", resetProgress);
+    document.getElementById("pin-map-btn").addEventListener("click", () => setHidden(els.drawer, false));
+    document.getElementById("pin-map-close").addEventListener("click", () => setHidden(els.drawer, true));
+    els.drawer.addEventListener("click", (event) => {
+      if (event.target === els.drawer) setHidden(els.drawer, true);
+    });
+    els.back.addEventListener("click", () => go(-1));
+    els.next.addEventListener("click", tryNext);
+    els.menu.addEventListener("click", () => toggleSidebar(true));
+    els.close.addEventListener("click", () => toggleSidebar(false));
+    els.view.addEventListener("click", onViewClick);
+    els.view.addEventListener("change", onViewChange);
+    els.view.addEventListener("input", onViewInput);
+    els.view.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && event.target.matches("[data-unlock-input]")) {
+        event.preventDefault();
+        tryUnlock(event.target.value);
+      }
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        setHidden(els.drawer, true);
+        toggleSidebar(false);
+        return;
+      }
+      if (event.target.matches("input, textarea, button, a, summary")) return;
+      if (event.key === "ArrowLeft") go(-1);
+      if (event.key === "ArrowRight") tryNext();
+    });
   }
 
   function afternoonOpen() {
@@ -102,8 +96,26 @@
 
   function computeSteps() {
     return flattenSteps(
-      window.PLAYBOOK.modules.filter((mod) => mod.phase !== "afternoon" || afternoonOpen())
+      window.PLAYBOOK.modules.filter((module) => module.phase !== "afternoon" || afternoonOpen())
     );
+  }
+
+  function flattenSteps(modules) {
+    const result = [];
+    modules.forEach((module) => {
+      module.steps.forEach((step, moduleIndex) => {
+        result.push({
+          ...step,
+          moduleId: module.id,
+          moduleTitle: module.title,
+          moduleIndex,
+          moduleLength: module.steps.length,
+          phase: module.phase || "morning",
+          phaseLabel: module.phaseLabel || (module.phase === "afternoon" ? "Hands-on" : "Morning"),
+        });
+      });
+    });
+    return result;
   }
 
   function applyMeta() {
@@ -117,62 +129,21 @@
       const kicker = document.querySelector(".brand-kicker");
       if (kicker) kicker.textContent = meta.kicker;
     }
-    if (meta.overlayEyebrow) {
-      const el = document.querySelector("#skill-overlay .eyebrow");
-      if (el) el.textContent = meta.overlayEyebrow;
-    }
-    if (meta.overlayTitle) {
-      const el = document.querySelector("#skill-overlay h1");
-      if (el) el.textContent = meta.overlayTitle;
-    }
-    if (meta.overlayLede) {
-      const el = document.querySelector("#skill-overlay .lede");
-      if (el) el.textContent = meta.overlayLede;
-    }
-    if (meta.skillLabels) Object.assign(SKILL_LABEL, meta.skillLabels);
-    if (meta.skills && meta.skills.length) {
-      const grid = document.querySelector(".skill-grid");
-      if (grid) {
-        grid.innerHTML = meta.skills
-          .map(
-            (s) =>
-              `<button type="button" class="skill-pick" data-skill="${s.id}">` +
-              `<span class="skill-kicker">${s.kicker}</span>` +
-              `<strong>${s.title}</strong>` +
-              `<span>${s.blurb}</span></button>`
-          )
-          .join("");
-        grid.querySelectorAll(".skill-pick").forEach((btn) => {
-          btn.addEventListener("click", () => setSkill(btn.dataset.skill));
-        });
-      }
-    }
-    if (meta.referenceTitle) {
-      const el = document.querySelector(".drawer-card h2");
-      if (el) el.textContent = meta.referenceTitle;
-    }
-    if (meta.referenceNote) {
-      const el = document.querySelector(".drawer-card .note");
-      if (el) el.textContent = meta.referenceNote;
-    }
-    if (meta.referenceRows && meta.referenceRows.length) {
-      const body = document.querySelector(".drawer-card tbody");
-      if (body) {
-        body.innerHTML = meta.referenceRows
-          .map((row) => "<tr>" + row.map((cell) => `<td>${cell}</td>`).join("") + "</tr>")
-          .join("");
-      }
-    }
+    if (meta.referenceTitle) document.querySelector(".drawer-card h2").textContent = meta.referenceTitle;
+    renderReference();
   }
 
-  function flattenSteps(modules) {
-    const out = [];
-    modules.forEach((mod) => {
-      mod.steps.forEach((step) => {
-        out.push({ ...step, moduleId: mod.id, moduleTitle: mod.title, phase: mod.phase || "morning" });
-      });
-    });
-    return out;
+  function renderReference() {
+    const meta = window.PLAYBOOK_META || {};
+    const useAfternoon = afternoonOpen() && meta.afternoonReferenceRows;
+    const rows = useAfternoon ? meta.afternoonReferenceRows : meta.referenceRows;
+    const note = useAfternoon ? meta.afternoonReferenceNote : meta.referenceNote;
+    if (note) document.querySelector(".drawer-card .note").textContent = note;
+    if (rows && rows.length) {
+      document.querySelector(".drawer-card tbody").innerHTML = rows
+        .map((row) => "<tr>" + row.map((cell) => `<td>${cell}</td>`).join("") + "</tr>")
+        .join("");
+    }
   }
 
   function readJson(key, fallback) {
@@ -183,32 +154,23 @@
     }
   }
 
-  function setHidden(el, hidden) {
-    if (hidden) el.setAttribute("hidden", "");
-    else el.removeAttribute("hidden");
-  }
-
-  function showSkillPicker(show) {
-    setHidden(els.overlay, !show);
-  }
-
-  function setSkill(skill) {
-    state.skill = skill;
-    localStorage.setItem(STORAGE.skill, skill);
-    document.body.dataset.skill = skill;
-    showSkillPicker(false);
-    render();
+  function setHidden(element, hidden) {
+    if (hidden) element.setAttribute("hidden", "");
+    else element.removeAttribute("hidden");
   }
 
   function resetProgress() {
-    if (!confirm("Clear checkpoints and start from the first morning step? Afternoon unlock stays if you already opened labs.")) return;
+    if (!confirm("Clear every checkpoint and return to the first step?")) return;
     state.index = 0;
     state.checks = {};
     state.quizzes = {};
+    state.visited = {};
     localStorage.setItem(STORAGE.step, "0");
     localStorage.setItem(STORAGE.checks, "{}");
     localStorage.setItem(STORAGE.quizzes, "{}");
+    localStorage.setItem(STORAGE.visited, "{}");
     render();
+    scrollStepTop();
   }
 
   function toggleSidebar(open) {
@@ -218,32 +180,40 @@
 
   function tryUnlock(raw) {
     const typed = String(raw || "").trim().toUpperCase();
-    if (typed === String(UNLOCK).toUpperCase()) {
-      state.afternoon = true;
-      localStorage.setItem(STORAGE.afternoon, "1");
-      steps = computeSteps();
-      const firstLab = steps.findIndex((s) => s.phase === "afternoon");
-      if (firstLab >= 0) state.index = firstLab;
-      localStorage.setItem(STORAGE.step, String(state.index));
-      render();
-      window.scrollTo({ top: 0, behavior: "smooth" });
+    const feedback = els.view.querySelector("[data-unlock-feedback]");
+    if (typed !== String(UNLOCK).toUpperCase()) {
+      if (feedback) {
+        feedback.textContent = "That code does not match. Wait for the facilitator and try again.";
+        feedback.classList.add("error");
+      }
       return;
     }
-    showGate("That code is not right. Wait for the facilitator after lunch.", false);
+
+    state.afternoon = true;
+    state.checks.unlock = true;
+    localStorage.setItem(STORAGE.afternoon, "1");
+    localStorage.setItem(STORAGE.checks, JSON.stringify(state.checks));
+    steps = computeSteps();
+    const firstLab = steps.findIndex((step) => step.phase === "afternoon");
+    if (firstLab >= 0) state.index = firstLab;
+    localStorage.setItem(STORAGE.step, String(state.index));
+    renderReference();
+    render();
+    scrollStepTop();
   }
 
   function go(delta) {
-    const next = state.index + delta;
-    if (next < 0 || next >= steps.length) return;
+    const nextIndex = state.index + delta;
+    if (nextIndex < 0 || nextIndex >= steps.length) return;
     if (delta > 0 && !canAdvance(steps[state.index])) {
       showGate(blockerText(steps[state.index]));
       return;
     }
     hideGate();
-    state.index = next;
+    state.index = nextIndex;
     localStorage.setItem(STORAGE.step, String(state.index));
     render();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollStepTop();
   }
 
   function tryNext() {
@@ -253,40 +223,45 @@
       return;
     }
     if (state.index === steps.length - 1) {
-      if (!afternoonOpen()) {
-        showGate("Morning is done. Afternoon labs stay locked until your facilitator gives the code.", false);
-        return;
-      }
-      showGate("You have finished every step. There is no next page — stay here and use Back if you want to review.", false);
-      els.hint.textContent = "Workshop complete. Stay on this page.";
+      const text = afternoonOpen()
+        ? "Workshop complete. Use Previous or the workshop map to revisit any experiment."
+        : "Morning is complete. The build lab opens when your facilitator gives the code.";
+      showGate(text, false);
+      els.hint.textContent = text;
       return;
     }
     go(1);
   }
 
   function canAdvance(step) {
+    if (step.phase === "afternoon") return true;
     if (step.quiz && !state.quizzes[step.id]) return false;
     if (step.checkpoint && !state.checks[step.id]) return false;
     return true;
   }
 
+  function hasRequirement(step) {
+    if (step.phase === "afternoon") return false;
+    return Boolean(step.quiz || step.checkpoint);
+  }
+
+  function isComplete(step, index) {
+    if (step.phase === "afternoon") return Boolean(state.visited[step.id]);
+    return hasRequirement(step) ? canAdvance(step) : index < state.index;
+  }
+
   function blockerText(step) {
-    if (step.quiz && !state.quizzes[step.id]) {
-      return "Answer the question on this page first. Next will not change the page until you do.";
-    }
-    if (step.checkpoint && !state.checks[step.id]) {
-      return "Tick the checkpoint box after you finish this work. Next will not change the page until it is ticked.";
-    }
-    return "Finish this step before continuing. You will stay on this page.";
+    if (step.quiz && !state.quizzes[step.id]) return "Answer the quick check before continuing.";
+    if (step.checkpoint && !state.checks[step.id]) return "Finish the experiment, then tick the checkpoint before continuing.";
+    return "Finish this step before continuing.";
   }
 
   function showGate(text, highlight) {
-    if (highlight === undefined) highlight = true;
+    const shouldHighlight = highlight === undefined ? true : highlight;
     els.gateText.textContent = text;
     setHidden(els.gate, false);
     els.hint.textContent = text;
-    els.hint.style.color = "#b45309";
-    if (highlight) {
+    if (shouldHighlight) {
       const box = els.view.querySelector(".checkpoint, .quiz");
       if (box) {
         box.classList.remove("needs-attention");
@@ -295,131 +270,222 @@
         box.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     }
-    els.gate.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   function hideGate() {
     setHidden(els.gate, true);
-    els.hint.style.color = "";
+  }
+
+  function scrollStepTop() {
+    els.view.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function render() {
+    clearTimeout(reactionTimer);
+    reactionState = "idle";
     steps = computeSteps();
-    if (state.index >= steps.length) state.index = Math.max(0, steps.length - 1);
+    if (state.index < 0 || state.index >= steps.length) state.index = 0;
     const step = steps[state.index];
-    els.badge.textContent = SKILL_LABEL[state.skill] || "Skill";
-    els.label.textContent = `Step ${state.index + 1} of ${steps.length}`;
+    if (step.phase === "afternoon" && !state.visited[step.id]) {
+      state.visited[step.id] = true;
+      localStorage.setItem(STORAGE.visited, JSON.stringify(state.visited));
+    }
+    const completed = steps.filter((item, index) => isComplete(item, index)).length;
+
+    els.label.textContent = `Step ${state.index + 1} of ${steps.length}${step.duration ? ` · ${step.duration}` : ""}`;
     els.fill.style.width = `${((state.index + 1) / steps.length) * 100}%`;
+    els.currentPhase.textContent = step.phaseLabel;
+    els.currentModule.textContent = step.moduleTitle;
+    els.sidebarProgress.textContent = `${completed}/${steps.length} complete`;
     els.back.disabled = state.index === 0;
     els.next.disabled = false;
-    els.next.textContent = state.index === steps.length - 1 ? "Done" : "Next";
-    els.hint.textContent = canAdvance(step)
-      ? "Checkpoint done. Click Next only when you are ready — ticking the box does not change the page."
-      : "Do the work, then tick the checkpoint. Clicking Next early keeps you on this page.";
+    els.next.textContent = state.index === steps.length - 1 ? "Finish" : "Continue";
+    els.hint.textContent = !hasRequirement(step)
+      ? "Review this step, then continue."
+      : canAdvance(step)
+        ? "Checkpoint complete. Continue when ready."
+        : step.quiz && !state.quizzes[step.id]
+          ? "Complete the quick check to continue."
+          : "Complete the work and tick the checkpoint.";
+
     hideGate();
     renderNav();
     renderStep(step);
+    renderReference();
     toggleSidebar(false);
   }
 
   function goToUnlock() {
-    const i = steps.findIndex((s) => s.id === "unlock");
-    if (i < 0) {
-      showGate("After lunch, type the code the facilitator says on the last morning card.", false);
+    const index = steps.findIndex((step) => step.id === "unlock");
+    if (index < 0) return;
+    if (!canJumpTo(index)) {
+      toggleSidebar(false);
+      showGate("Complete each morning checkpoint before opening the build lab.");
       return;
     }
-    hideGate();
-    state.index = i;
+    state.index = index;
     localStorage.setItem(STORAGE.step, String(state.index));
     render();
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    scrollStepTop();
+  }
+
+  function canJumpTo(targetIndex) {
+    const target = steps[targetIndex];
+    if (target && target.phase === "afternoon" && afternoonOpen()) return true;
+    if (targetIndex <= state.index) return true;
+    for (let index = state.index; index < targetIndex; index += 1) {
+      if (!canAdvance(steps[index])) return false;
+    }
+    return true;
   }
 
   function renderNav() {
     els.nav.innerHTML = "";
-    let afternoonUmbrella = false;
-    window.PLAYBOOK.modules.forEach((mod) => {
-      const locked = mod.phase === "afternoon" && !afternoonOpen();
+    let lockedRendered = false;
+    let exercisesRendered = false;
+
+    window.PLAYBOOK.modules.forEach((module) => {
+      const locked = module.phase === "afternoon" && !afternoonOpen();
       if (locked) {
-        if (afternoonUmbrella) return;
-        afternoonUmbrella = true;
-        const wrap = document.createElement("div");
-        wrap.className = "afternoon-lock";
-        wrap.innerHTML =
-          `<p class="mod-label locked-mod">Afternoon labs</p>` +
-          `<h3>Locked until lunch</h3>` +
-          `<p>Three kit labs sit under this one section. After lunch, type the code the facilitator says on the last morning card.</p>` +
-          `<button type="button" class="nav-step locked"><span class="nav-idx">—</span><span>Go to unlock</span></button>`;
-        wrap.querySelector("button").addEventListener("click", (e) => {
-          e.stopPropagation();
-          goToUnlock();
-        });
-        wrap.addEventListener("click", goToUnlock);
-        els.nav.appendChild(wrap);
+        if (lockedRendered) return;
+        lockedRendered = true;
+        const lockCard = document.createElement("button");
+        lockCard.type = "button";
+        lockCard.className = "afternoon-lock";
+        lockCard.innerHTML = `<span class="lock-icon" aria-hidden="true"></span><span><small>Hands-on build lab</small><strong>Three POCs locked</strong><em>Open after lunch with the facilitator code</em></span>`;
+        lockCard.addEventListener("click", goToUnlock);
+        els.nav.appendChild(lockCard);
         return;
       }
 
-      const label = document.createElement("p");
-      label.className = "mod-label";
-      label.textContent = mod.title;
-      els.nav.appendChild(label);
+      if (module.id.startsWith("exercise-")) {
+        if (exercisesRendered) return;
+        exercisesRendered = true;
+        renderExerciseGroup();
+        return;
+      }
 
-      mod.steps.forEach((step) => {
-        const i = steps.findIndex((s) => s.id === step.id);
-        if (i < 0) return;
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "nav-step";
-        if (i === state.index) btn.classList.add("active");
-        if (i < state.index) btn.classList.add("done");
-        btn.innerHTML = `<span class="nav-idx">${String(i + 1).padStart(2, "0")}</span><span>${step.title}</span>`;
-        btn.addEventListener("click", () => {
-          if (i > state.index) {
-            for (let n = state.index; n < i; n += 1) {
-              if (!canAdvance(steps[n])) {
-                showGate("Finish and tick the checkpoint on this page first. The playbook will not jump ahead.");
-                return;
-              }
-            }
-          }
-          hideGate();
-          state.index = i;
-          localStorage.setItem(STORAGE.step, String(state.index));
-          render();
-        });
-        els.nav.appendChild(btn);
-      });
+      renderModuleNav(module);
     });
+  }
+
+  function moduleEntries(module) {
+    return module.steps
+      .map((item) => {
+        const index = steps.findIndex((step) => step.id === item.id);
+        return { item: index >= 0 ? steps[index] : item, index };
+      })
+      .filter(({ index }) => index >= 0);
+  }
+
+  function renderModuleNav(module) {
+    const entries = moduleEntries(module);
+    if (!entries.length) return;
+    const active = entries.some(({ index }) => index === state.index);
+    const completed = entries.filter(({ item, index }) => isComplete(item, index)).length;
+    const details = createNavModule(
+      module.phaseLabel || (module.phase === "afternoon" ? "Hands-on" : "Morning"),
+      module.title,
+      completed,
+      entries.length,
+      active
+    );
+    const list = details.querySelector(".module-steps");
+    entries.forEach(({ item, index }) => list.appendChild(createNavButton(item, index)));
+    els.nav.appendChild(details);
+  }
+
+  function renderExerciseGroup() {
+    const modules = window.PLAYBOOK.modules.filter((module) => module.id.startsWith("exercise-"));
+    const entries = modules.flatMap(moduleEntries);
+    const exercises = modules.filter((module) => /^exercise-[1-8]$/.test(module.id));
+    const active = entries.some(({ index }) => index === state.index);
+    const completed = exercises.filter((module) =>
+      moduleEntries(module).every(({ item, index }) => isComplete(item, index))
+    ).length;
+    const details = createNavModule("Morning · practice", "Exercises 1–8", completed, exercises.length, active);
+    details.classList.add("exercise-group");
+    const list = details.querySelector(".module-steps");
+
+    modules.forEach((module) => {
+      const moduleItems = moduleEntries(module);
+      const moduleCompleted = moduleItems.filter(({ item, index }) => isComplete(item, index)).length;
+      const label = document.createElement("p");
+      label.className = "nav-submodule-label";
+      if (moduleItems.some(({ index }) => index === state.index)) label.classList.add("active");
+      label.innerHTML = `<strong>${module.title}</strong><span>${moduleCompleted}/${moduleItems.length}</span>`;
+      list.appendChild(label);
+      moduleItems.forEach(({ item, index }) => list.appendChild(createNavButton(item, index)));
+    });
+
+    els.nav.appendChild(details);
+  }
+
+  function createNavModule(phase, title, completed, total, active) {
+    const details = document.createElement("details");
+    details.className = "nav-module";
+    details.open = active;
+    if (active) details.classList.add("current");
+    if (completed === total) details.classList.add("complete");
+    details.innerHTML = `<summary><span><small>${phase}</small><strong>${title}</strong></span><em>${completed}/${total}</em></summary><div class="module-steps"></div>`;
+    return details;
+  }
+
+  function createNavButton(item, index) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "nav-step";
+    if (index === state.index) {
+      button.classList.add("active");
+      button.setAttribute("aria-current", "step");
+    }
+    if (isComplete(item, index)) button.classList.add("done");
+    if (!canJumpTo(index)) button.classList.add("unavailable");
+    button.innerHTML = `<span class="nav-idx">${String(item.moduleIndex + 1).padStart(2, "0")}</span><span>${item.title}</span>`;
+    button.addEventListener("click", () => {
+      if (!canJumpTo(index)) {
+        toggleSidebar(false);
+        showGate("Complete the current checkpoint before jumping ahead.");
+        return;
+      }
+      state.index = index;
+      localStorage.setItem(STORAGE.step, String(state.index));
+      render();
+      scrollStepTop();
+    });
+    return button;
   }
 
   function renderStep(step) {
     const quizHtml = step.quiz ? renderQuiz(step) : "";
-    const checkHtml = step.checkpoint ? renderCheckpoint(step) : "";
-    const facHtml = step.facilitator
-      ? `<aside class="facilitator"><strong>Facilitator</strong><p>${step.facilitator}</p></aside>`
+    const checkpointHtml = step.phase !== "afternoon" && step.checkpoint ? renderCheckpoint(step) : "";
+    const facilitatorHtml = step.facilitator
+      ? `<aside class="facilitator"><strong>Facilitator cue</strong><p>${step.facilitator}</p></aside>`
       : "";
 
     els.view.innerHTML = `
       <div class="step-inner">
-      <p class="step-kicker">${step.moduleTitle}</p>
-      <h1>${step.title}</h1>
-      ${step.html}
-      ${quizHtml}
-      ${checkHtml}
-      ${facHtml}
+        <div class="step-meta"><span class="phase-chip ${step.phase}">${step.phaseLabel}</span><span>Module step ${step.moduleIndex + 1} of ${step.moduleLength}</span>${step.duration ? `<span>${step.duration}</span>` : ""}</div>
+        <p class="step-kicker">${step.moduleTitle}</p>
+        <h1 tabindex="-1">${step.title}</h1>
+        <div class="step-content">${step.html}</div>
+        ${quizHtml}
+        ${checkpointHtml}
+        ${facilitatorHtml}
       </div>
     `;
   }
 
   function renderQuiz(step) {
-    const done = !!state.quizzes[step.id];
-    const buttons = step.quiz.choices
+    const done = Boolean(state.quizzes[step.id]);
+    const choices = step.quiz.choices
       .map((choice) => `<button type="button" data-choice="${escapeAttr(choice)}">${choice}</button>`)
       .join("");
     return `
       <section class="quiz" data-quiz-id="${step.id}" data-answer="${escapeAttr(step.quiz.answer)}">
+        <p class="section-label">Quick check</p>
         <h3>${step.quiz.prompt}</h3>
-        <div class="choice-row">${buttons}</div>
+        <div class="choice-row">${choices}</div>
         <p class="quiz-feedback"${done ? "" : " hidden"}>${done ? step.quiz.explain : ""}</p>
       </section>
     `;
@@ -428,84 +494,187 @@
   function renderCheckpoint(step) {
     const checked = state.checks[step.id] ? "checked" : "";
     return `
-      <section class="checkpoint">
-        <h3>Checkpoint</h3>
-        <label>
-          <input type="checkbox" data-check="${step.id}" ${checked} />
-          <span>${step.checkpoint}</span>
-        </label>
+      <section class="checkpoint ${checked ? "is-complete" : ""}">
+        <div class="checkpoint-mark" aria-hidden="true"></div>
+        <div><p class="section-label">Evidence checkpoint</p><h3>Confirm before you continue</h3>
+        <label><input type="checkbox" data-check="${step.id}" ${checked} /><span>${step.checkpoint}</span></label></div>
       </section>
     `;
   }
 
-  function onViewClick(e) {
-    const unlockBtn = e.target.closest("[data-unlock-submit]");
-    if (unlockBtn) {
+  async function copyCode(button) {
+    const text = button.closest(".code-block").querySelector("pre").innerText;
+    try {
+      if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
+      else {
+        const area = document.createElement("textarea");
+        area.value = text;
+        area.style.position = "fixed";
+        area.style.opacity = "0";
+        document.body.appendChild(area);
+        area.select();
+        document.execCommand("copy");
+        area.remove();
+      }
+      button.textContent = "Copied";
+    } catch {
+      button.textContent = "Select code to copy";
+    }
+    setTimeout(() => {
+      button.textContent = "Copy code";
+    }, 1400);
+  }
+
+  function onViewClick(event) {
+    const unlockButton = event.target.closest("[data-unlock-submit]");
+    if (unlockButton) {
       const input = els.view.querySelector("[data-unlock-input]");
       tryUnlock(input ? input.value : "");
       return;
     }
 
-    const copyBtn = e.target.closest(".copy-btn");
-    if (copyBtn) {
-      const block = copyBtn.closest(".code-block");
-      const text = block.querySelector("pre").innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        copyBtn.textContent = "Copied";
-        setTimeout(() => {
-          copyBtn.textContent = "Copy";
-        }, 1200);
-      });
+    const copyButton = event.target.closest(".copy-btn");
+    if (copyButton) {
+      copyCode(copyButton);
       return;
     }
 
-    const choice = e.target.closest("[data-choice]");
+    const choice = event.target.closest("[data-choice]");
     if (choice) {
-      const quiz = choice.closest(".quiz");
-      const answer = quiz.dataset.answer;
-      const picked = choice.dataset.choice;
-      const feedback = quiz.querySelector(".quiz-feedback");
-      const step = steps[state.index];
-      quiz.querySelectorAll("[data-choice]").forEach((btn) => {
-        btn.classList.remove("correct", "wrong");
-      });
-      if (picked === answer) {
-        choice.classList.add("correct");
-        state.quizzes[step.id] = true;
-        localStorage.setItem(STORAGE.quizzes, JSON.stringify(state.quizzes));
-        feedback.hidden = false;
-        feedback.textContent = step.quiz.explain;
-        hideGate();
-        els.hint.textContent = canAdvance(step)
-          ? "Question done. Click Next when you are ready — this page will not change by itself."
-          : "Answer saved. Tick the checkpoint, then click Next.";
-      } else {
-        choice.classList.add("wrong");
-        feedback.hidden = false;
-        feedback.textContent = step.quiz.wrong || "Not that one. Try again.";
-      }
+      answerQuiz(choice);
+      return;
+    }
+
+    if (event.target.closest("[data-reaction-start]")) {
+      startReactionDemo();
+      return;
+    }
+
+    const reactionButton = event.target.closest("[data-reaction-press]");
+    if (reactionButton) pressReactionDemo(Number(reactionButton.dataset.reactionPress));
+  }
+
+  function answerQuiz(choice) {
+    const quiz = choice.closest(".quiz");
+    const picked = choice.dataset.choice;
+    const step = steps[state.index];
+    const feedback = quiz.querySelector(".quiz-feedback");
+    quiz.querySelectorAll("[data-choice]").forEach((button) => button.classList.remove("correct", "wrong"));
+
+    if (picked === quiz.dataset.answer) {
+      choice.classList.add("correct");
+      state.quizzes[step.id] = true;
+      localStorage.setItem(STORAGE.quizzes, JSON.stringify(state.quizzes));
+      feedback.hidden = false;
+      feedback.textContent = step.quiz.explain;
+      hideGate();
+      els.hint.textContent = canAdvance(step)
+        ? "Quick check complete. Continue when ready."
+        : "Answer saved. Complete the checkpoint next.";
+      renderNav();
+    } else {
+      choice.classList.add("wrong");
+      feedback.hidden = false;
+      feedback.textContent = step.quiz.wrong || "Not yet. Try another answer.";
     }
   }
 
-  function onViewChange(e) {
-    const box = e.target.closest("[data-check]");
-    if (!box) return;
-    const id = box.dataset.check;
-    if (box.checked) state.checks[id] = true;
+  function startReactionDemo() {
+    clearTimeout(reactionTimer);
+    const root = els.view.querySelector("[data-reaction-sim]");
+    if (!root) return;
+    root.querySelectorAll(".reaction-lights i").forEach((light) => light.classList.remove("on"));
+    root.querySelector("[data-reaction-status]").textContent = "WAIT... do not press yet.";
+    root.querySelector("[data-reaction-result]").textContent = "Armed";
+    root.querySelectorAll("[data-reaction-press]").forEach((button) => {
+      button.disabled = false;
+    });
+    root.className = "reaction-simulator waiting";
+    reactionTarget = -1;
+    reactionState = "waiting";
+    reactionTimer = setTimeout(() => {
+      if (!root.isConnected || reactionState !== "waiting") return;
+      const lights = root.querySelectorAll(".reaction-lights i");
+      reactionTarget = Math.floor(Math.random() * lights.length);
+      lights[reactionTarget].classList.add("on");
+      root.querySelector("[data-reaction-status]").textContent = `TARGET ${reactionTarget + 1} — press the matching button.`;
+      root.querySelector("[data-reaction-result]").textContent = "Timing...";
+      root.className = "reaction-simulator go";
+      reactionGoAt = performance.now();
+      reactionState = "go";
+    }, 1200 + Math.random() * 2200);
+  }
+
+  function pressReactionDemo(selected) {
+    const root = els.view.querySelector("[data-reaction-sim]");
+    if (!root || reactionState === "idle" || reactionState === "result") return;
+    clearTimeout(reactionTimer);
+    const status = root.querySelector("[data-reaction-status]");
+    const result = root.querySelector("[data-reaction-result]");
+
+    if (reactionState === "waiting") {
+      status.textContent = "TOO EARLY";
+      result.textContent = "Foul — no time recorded";
+      root.className = "reaction-simulator false-start";
+    } else if (selected !== reactionTarget) {
+      status.textContent = "WRONG BUTTON";
+      result.textContent = `Target ${reactionTarget + 1}, pressed ${selected + 1}`;
+      root.className = "reaction-simulator false-start";
+    } else {
+      const elapsed = Math.round(performance.now() - reactionGoAt);
+      status.textContent = "VALID REACTION";
+      result.textContent = elapsed + " ms";
+      root.className = "reaction-simulator result";
+    }
+    root.querySelectorAll(".reaction-lights i").forEach((light) => light.classList.remove("on"));
+    root.querySelectorAll("[data-reaction-press]").forEach((button) => {
+      button.disabled = true;
+    });
+    reactionTarget = -1;
+    reactionState = "result";
+  }
+
+  function onViewChange(event) {
+    const checkbox = event.target.closest("[data-check]");
+    if (!checkbox) return;
+    const id = checkbox.dataset.check;
+    if (checkbox.checked) state.checks[id] = true;
     else delete state.checks[id];
     localStorage.setItem(STORAGE.checks, JSON.stringify(state.checks));
     const step = steps[state.index];
     const ready = canAdvance(step);
-    els.hint.textContent = ready
-      ? "Checkpoint ticked. You are still on this page — click Next when you want to continue."
-      : blockerText(step);
-    els.hint.style.color = "";
+    const checkpoint = checkbox.closest(".checkpoint");
+    checkpoint.classList.toggle("is-complete", checkbox.checked);
+    checkpoint.classList.toggle("needs-attention", !checkbox.checked);
+    els.hint.textContent = ready ? "Checkpoint complete. Continue when ready." : blockerText(step);
     if (ready) hideGate();
-    const wrap = box.closest(".checkpoint");
-    if (wrap) wrap.classList.toggle("needs-attention", !box.checked);
+    renderNav();
+    const completed = steps.filter((item, index) => isComplete(item, index)).length;
+    els.sidebarProgress.textContent = `${completed}/${steps.length} complete`;
   }
 
-  function onViewInput() {}
+  function onViewInput(event) {
+    if (!event.target.matches("[data-sound-quiet], [data-sound-loud]")) return;
+    const tool = event.target.closest(".sound-threshold-tool");
+    const quietInput = tool.querySelector("[data-sound-quiet]");
+    const loudInput = tool.querySelector("[data-sound-loud]");
+    const output = tool.querySelector("[data-sound-result]");
+    if (quietInput.value === "" || loudInput.value === "") {
+      output.textContent = "Enter your two readings from Serial Monitor.";
+      output.classList.remove("error");
+      return;
+    }
+    const quiet = Number(quietInput.value);
+    const loud = Number(loudInput.value);
+    if (!Number.isFinite(quiet) || !Number.isFinite(loud) || loud <= quiet) {
+      output.textContent = "The loud reading must be higher than the quiet reading. Measure both again.";
+      output.classList.add("error");
+      return;
+    }
+    const midpoint = Math.round((quiet + loud) / 2);
+    output.textContent = `Start with SOUND_THRESHOLD = ${midpoint}; then test and refine it.`;
+    output.classList.remove("error");
+  }
 
   function escapeAttr(value) {
     return String(value)

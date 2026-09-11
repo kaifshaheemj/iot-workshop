@@ -18,7 +18,7 @@
     html: slide.html,
   }));
 
-  const state = { items: [], index: 0, title: "IOT Workshop Prep-Book" };
+  const state = { items: [], index: 0, title: "From Sensors to Smart Systems" };
 
   document.getElementById("btn-fullscreen").addEventListener("click", toggleFullscreen);
   btnPrev.addEventListener("click", () => go(-1));
@@ -27,9 +27,9 @@
     const item = state.items[state.index];
     if (item && item.type === "img") {
       item.type = "html";
-      item.kicker = "Morning theory";
+      item.kicker = "Morning presentation";
       item.title = "Slide image could not load";
-      item.html = "<p>Export the prep-book as numbered PNG files into <code>slides/images/</code>, then refresh.</p>";
+      item.html = "<p>Restore the numbered presentation images under <code>slides/images/</code>, then refresh.</p>";
       render();
     }
   });
@@ -76,7 +76,7 @@
     state.title = deck.title || state.title;
     state.items = deck.items || [];
     titleEl.textContent = state.title;
-    document.title = state.title + " — Morning slides";
+    document.title = state.title + " — Presentation";
     render();
   });
 
@@ -164,7 +164,7 @@
       } else {
         htmlSlide.innerHTML =
           '<p class="eyebrow">' +
-          (item.kicker || "Morning theory") +
+          (item.kicker || "Morning presentation") +
           "</p><h1>" +
           (item.title || "") +
           "</h1>" +

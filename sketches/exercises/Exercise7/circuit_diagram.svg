@@ -1,0 +1,29 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <rect width="1600" height="1000" fill="#f4f7fb"/>
+  <defs><style>
+    text{font-family:Arial,sans-serif}.title{font-size:44px;font-weight:700}.sub{font-size:22px;fill:#526174}.head{font-size:26px;font-weight:700}.label{font-size:20px;font-weight:700}.small{font-size:17px;fill:#425466}.pin text{font-size:18px;fill:#ffffff;font-weight:700}.wire{fill:none;stroke-width:7;stroke-linecap:round;stroke-linejoin:round}.panel{fill:white;stroke:#b8c5d4;stroke-width:3}
+  </style></defs>
+  <text x="70" y="70" class="title">Exercise 7 - Wi-Fi Servo Angle Control</text>
+  <text x="70" y="108" class="sub">Connect to ESP32-Servo, then open http://192.168.4.1</text>
+
+  <rect x="575" y="175" width="470" height="650" rx="38" fill="#16324a" stroke="#0b2032" stroke-width="6"/>
+  <text x="810" y="235" text-anchor="middle" font-size="34" font-weight="700" style="fill:#fff">ESP32 DEV MODULE</text>
+  <path d="M700 330Q810 235 920 330M740 355Q810 295 880 355M785 385Q810 365 835 385" fill="none" stroke="#65d6ff" stroke-width="10" stroke-linecap="round"/>
+  <g class="pin"><text style="fill:#fff" x="610" y="520">GPIO13 SERVO SIGNAL</text><text style="fill:#fff" x="610" y="650">GND</text></g><circle cx="575" cy="513" r="13" fill="#3182ce"/><circle cx="575" cy="643" r="13" fill="#222"/>
+
+  <rect x="70" y="180" width="440" height="470" rx="28" class="panel"/><text x="290" y="225" text-anchor="middle" class="head">SERVO MOTOR</text>
+  <rect x="155" y="330" width="270" height="180" rx="22" fill="#287db7" stroke="#154f78" stroke-width="6"/><circle cx="290" cy="330" r="52" fill="#e7edf3" stroke="#526174" stroke-width="5"/><circle cx="290" cy="330" r="16" fill="#8b98a5"/><path d="M290 330L175 265" class="wire" stroke="#526174"/><circle cx="175" cy="265" r="12" fill="#526174"/>
+  <text x="290" y="555" text-anchor="middle" class="label">Brown/black: GND</text><text x="290" y="585" text-anchor="middle" class="label">Red: +5 V</text><text x="290" y="615" text-anchor="middle" class="label">Orange/yellow: signal</text>
+  <path d="M510 513H575" class="wire" stroke="#d69e2e"/><path d="M510 643H575" class="wire" stroke="#252d38"/>
+
+  <rect x="70" y="685" width="440" height="140" rx="22" fill="#fff7e6" stroke="#d69e2e" stroke-width="4"/><text x="290" y="727" text-anchor="middle" class="head">EXTERNAL 5 V SUPPLY</text><text x="290" y="765" text-anchor="middle" class="small">+5 V to servo red wire</text><text x="290" y="795" text-anchor="middle" class="small">Supply GND to servo and ESP32 GND</text>
+
+  <rect x="1110" y="175" width="420" height="650" rx="28" class="panel"/><text x="1320" y="225" text-anchor="middle" class="head">PHONE WEB CONTROL</text>
+  <rect x="1200" y="270" width="240" height="430" rx="32" fill="#202b35" stroke="#0e151b" stroke-width="7"/><rect x="1220" y="320" width="200" height="310" rx="12" fill="#eef2f7"/>
+  <text x="1320" y="365" text-anchor="middle" class="label">Servo Control</text><text x="1320" y="420" text-anchor="middle" class="small">Angle: 90 deg</text><path d="M1250 475H1390" stroke="#3182ce" stroke-width="10" stroke-linecap="round"/><circle cx="1320" cy="475" r="18" fill="#1769aa"/><text x="1320" y="545" text-anchor="middle" class="small">0 to 180 degrees</text>
+  <path d="M1080 400Q1120 350 1160 400M1060 370Q1120 300 1180 370" fill="none" stroke="#65d6ff" stroke-width="8" stroke-linecap="round"/>
+  <text x="1320" y="745" text-anchor="middle" class="label">Wi-Fi: ESP32-Servo</text><text x="1320" y="780" text-anchor="middle" class="small">Password: esp32demo</text>
+
+  <rect x="70" y="860" width="1460" height="100" rx="22" fill="#e9f7ef" stroke="#2f855a" stroke-width="4"/>
+  <text x="105" y="900" class="head">Arduino libraries to install</text><text x="105" y="935" class="small">ESP32Servo. WiFi and WebServer are included with the ESP32 Arduino board package.</text>
+</svg>

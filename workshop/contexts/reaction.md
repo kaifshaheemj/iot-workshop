@@ -1,45 +1,27 @@
-# Team context — Lab 3 only (reaction time LEDs)
+# Team context — Lab 3 only (Reaction Arena)
 
-Paste **this file** into the copilot with the workshop playbook prompt. Do not describe Labs 1 or 2 here. Do not change morning theory cards.
+Use `POC Projects/ReactionTime.ino` as the source of truth. Do not reuse the older three-LED, one-button serial timer.
 
-This PoC needs a react input. A button on GPIO 4 is part of **this** lab only — do not add it to Lab 2.
-
----
-
-## PoC / problem (required)
+## POC
 
 ```
-Name: Reaction-time LED tester
-What the demo proves when it works: The board waits a random time, lights one of three LEDs, and measures how long until the student presses the react button. Serial prints the time in milliseconds. A press before the LED (false start) is not counted as a valid time.
-How a human can tell it worked: An LED lights after a pause; press; Serial Monitor (115200) prints a number of ms. False start is flagged.
+Name: Reaction Arena multiplayer game
+Proof: One to four phones join the ESP32's local web lobby. Each player completes three turns. A countdown and LED chase are followed by a random wait and one of four target LEDs. The matching physical button records reaction time; early, wrong, and late presses are fouls. The web UI shows turns, scores, and final ranking.
 ```
 
-## Audience
+## Final hardware and software
 
 ```
-Department / year (optional): University workshop, mixed skill
-Languages they know (optional): None required
+Board: ESP32 Dev Module
+LEDs 1-4: GPIO 16, 17, 18, 19 through individual 220 ohm resistors to GND
+Buttons 1-4: GPIO 25, 26, 27, 32 to GND using INPUT_PULLUP
+Channel pairs: 16/25, 17/26, 18/27, 19/32
+Wi-Fi: open network "Reaction Arena"
+Web page: ESP32 access-point IP, normally http://192.168.4.1
+Serial: 115200
+BUTTON_DEBOUNCE_MS: 25
+TARGET_TIMEOUT_MS: 3000
+Rounds: 3
 ```
 
-## Hardware and software that actually exist
-
-```
-Board / laptop / tools: ESP32 Dev Module, USB data cable, Arduino IDE, breadboard
-Sensors / actuators:
-  - LED A GPIO 25 through 220 ohm to GND
-  - LED B GPIO 26 through 220 ohm to GND
-  - LED C GPIO 27 through 220 ohm to GND
-  - React button GPIO 4 to GND, INPUT_PULLUP (pressed = LOW)
-Cables / power: USB
-IDE or software: Arduino IDE, ESP32 board package, Serial 115200
-Pin or port map if you already locked one:
-  LED_A 25, LED_B 26, LED_C 27, BUTTON_PIN 4
-No Wi-Fi page in this PoC unless CONTEXT is updated later.
-```
-
-## Out of scope this session
-
-```
-Later add-on: Do not add traffic sound sensing or laser/LDR/servo in this module.
-Pin or resource to reserve and leave unused: GPIO 18 if reserved on the shared kit.
-```
+OLED/I2C hooks are intentionally disabled in the final source. Do not wire an OLED for this POC.

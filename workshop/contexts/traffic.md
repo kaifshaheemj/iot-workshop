@@ -1,48 +1,26 @@
-# Team context — Lab 1 only (traffic + ambulance)
+# Team context — Lab 1 only (Traffic Signal)
 
-Paste **this file** into the copilot with the workshop playbook prompt. Do not describe Labs 2 or 3 here. Do not change morning theory cards.
+Use `POC Projects/TrafficSignal.ino` as the source of truth. Do not reuse the older analog-sound TrafficLab pin map.
 
-Pins below are defaults until the kit is confirmed. If your table uses different pins, edit only this file, then regenerate the Lab 1 module and `sketches/traffic/`.
-
----
-
-## PoC / problem (required)
+## POC
 
 ```
-Name: Traffic light with ambulance interrupt and web status
-What the demo proves when it works: A three-colour signal cycles red / yellow / green. A loud ambulance-like sound (or a clap into the sound sensor) interrupts the cycle and forces green. A page served by the ESP32 shows the same colour/state.
-How a human can tell it worked: LEDs cycle; siren/clap jumps to green; join Wi-Fi TrafficLab and open http://192.168.4.1 — the heading matches the LEDs.
+Name: Traffic Signal with ambulance and manual green override
+Proof: Green/yellow/red cycle automatically. Twelve KY-037 digital sound events inside two seconds start a 15-second green ambulance override. An SH1106 OLED and local web page show signal, mode, next state, and remaining time. The page can also request manual green or return to auto.
 ```
 
-## Audience
+## Final hardware and software
 
 ```
-Department / year (optional): University workshop, mixed skill
-Languages they know (optional): None required
+Board: ESP32 Dev Module
+Red LED: GPIO 4 through 220 ohm to GND
+Yellow LED: GPIO 2 through 220 ohm to GND
+Green LED: GPIO 16 through 220 ohm to GND
+KY-037: DO GPIO 17, VCC 3.3V, shared GND; AO unused
+SH1106 128x64 OLED: SDA GPIO 22, SCL GPIO 21, address 0x3C
+Wi-Fi: TrafficSignal / traffic123
+Libraries: WiFi, WebServer, Wire, Adafruit GFX, Adafruit SH110X
+Serial: 115200
 ```
 
-## Hardware and software that actually exist
-
-```
-Board / laptop / tools: ESP32 Dev Module, USB data cable, Arduino IDE, breadboard, jumper wires
-Sensors / actuators:
-  - Red LED on GPIO 25 through 220 ohm to GND
-  - Yellow LED on GPIO 26 through 220 ohm to GND
-  - Green LED on GPIO 27 through 220 ohm to GND
-  - Sound sensor analog out on GPIO 34 (ADC1). Tune SOUND_THRESHOLD from Serial.
-Cables / power: USB from laptop. Sound module VCC 3.3V unless the module requires 5V.
-IDE or software: Arduino IDE, ESP32 board package, Serial 115200
-Pin or port map if you already locked one:
-  RED_PIN 25
-  YELLOW_PIN 26
-  GREEN_PIN 27
-  SOUND_PIN 34
-  AP SSID TrafficLab
-```
-
-## Out of scope this session
-
-```
-Later add-on: Do not add a practice button. Do not add Lab 2 laser/LDR/servo or Lab 3 reaction LEDs in this module.
-Pin or resource to reserve and leave unused: GPIO 18 if the shared kit reserved it for a later buzzer — do not drive it in this sketch.
-```
+The final source uses `SOUND_ACTIVE_LEVEL`, `REQUIRED_SOUND_EVENTS`, and `SOUND_WINDOW`; it does not use an analog `SOUND_THRESHOLD`.

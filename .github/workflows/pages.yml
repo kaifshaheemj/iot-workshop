@@ -24,10 +24,11 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Assemble site (playbook + slider under /workshop/)
+      - name: Assemble site (playbook, slides, and downloadable sketches)
         run: |
-          mkdir -p _site/workshop
+          mkdir -p _site/workshop _site/sketches
           cp -a workshop/. _site/workshop/
+          cp -a sketches/. _site/sketches/
           touch _site/.nojekyll _site/workshop/.nojekyll
           printf '%s\n' \
             '<!DOCTYPE html>' \
@@ -52,14 +53,18 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build offline zip packs
         run: |
-          mkdir -p dist
-          (cd workshop && zip -r ../dist/workshop-morning.zip . -x "*.git*")
+          mkdir -p dist morning-pack/workshop morning-pack/sketches
+          cp -a workshop/. morning-pack/workshop/
+          cp -a sketches/exercises morning-pack/sketches/
+          printf '%s\n' 'Morning pack: open workshop/index.html. The presentation and Exercises 1-8 are included for offline use.' > morning-pack/README.txt
+          (cd morning-pack && zip -r ../dist/workshop-morning.zip . -x "*.git*")
           mkdir -p pack/workshop pack/sketches
           cp -a workshop/. pack/workshop/
+          cp -a sketches/exercises pack/sketches/
           cp -a sketches/traffic pack/sketches/
           cp -a sketches/tripwire pack/sketches/
           cp -a sketches/reaction pack/sketches/
-          printf '%s\n' 'Afternoon pack: open workshop/index.html. Arduino sketches are under sketches/traffic, sketches/tripwire, sketches/reaction.' > pack/README.txt
+          printf '%s\n' 'Complete pack: open workshop/index.html. Morning exercises and afternoon project sketches are under sketches/.' > pack/README.txt
           (cd pack && zip -r ../dist/workshop-afternoon.zip .)
       - uses: actions/upload-artifact@v4
         with:

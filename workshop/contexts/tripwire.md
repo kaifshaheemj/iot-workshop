@@ -1,49 +1,24 @@
-# Team context — Lab 2 only (tripwire + servo door)
+# Team context — Lab 2 only (laser tripwire)
 
-Paste **this file** into the copilot with the workshop playbook prompt. Do not describe Labs 1 or 3 here. Do not change morning theory cards.
+Use the updated laser/LDR/buzzer playbook from `updated with trip wire/iot-workshop` as the source of truth. Ignore its older servo, LED, and dashboard files.
 
-Pins below are defaults until the kit is confirmed.
-
----
-
-## PoC / problem (required)
+## POC
 
 ```
-Name: Laser + LDR tripwire with servo door and web open/close
-What the demo proves when it works: A laser aimed at an LDR is a beam. Breaking the beam flags an intruder, turns on an alarm LED, and a servo closes a cardboard door. A page on the ESP32 can also open or close that door.
-How a human can tell it worked: Serial says INTRUDER DETECTED; GPIO 5 LED on; servo moves to closed; join Wi-Fi IntruderLab and open http://192.168.4.1 — status plus Open door / Close door buttons.
+Name: Laser tripwire with audible intruder alarm
+Proof: The laser remains aimed at the LDR. Beam present prints NORMAL and keeps the active buzzer quiet. Blocking the beam lowers the LDR reading below the measured threshold, prints INTRUDER DETECTED, and sounds the buzzer.
 ```
 
-## Audience
+## Final hardware and software
 
 ```
-Department / year (optional): University workshop, mixed skill
-Languages they know (optional): None required
+Board: ESP32 Dev Module
+LDR module: AO GPIO 34, VCC 3.3V, shared GND
+Laser module: S GPIO 25, VCC per module rating, shared GND
+Active buzzer module: SIG GPIO 27, VCC per module rating, shared GND
+Serial: 115200
+Threshold: midpoint of measured beam-on and blocked readings
+Decision for the supplied kit: lightValue < THRESHOLD means intruder
 ```
 
-## Hardware and software that actually exist
-
-```
-Board / laptop / tools: ESP32 Dev Module, USB data cable, Arduino IDE, breadboard
-Sensors / actuators:
-  - LDR analog out on GPIO 34 (ADC1)
-  - Alarm LED on GPIO 5 through 220 ohm
-  - KY-008 or similar laser aimed at the LDR (power per module rating)
-  - Servo signal on GPIO 13 (VCC 5V if the servo needs it; external 5V if USB browns out)
-Cables / power: USB; servo may need 5V
-IDE or software: Arduino IDE, ESP32 board package, Serial 115200
-Pin or port map if you already locked one:
-  LDR_PIN 34
-  LED_PIN 5
-  SERVO_PIN 13
-  THRESHOLD from beam-on vs beam-off Serial readings
-  AP SSID IntruderLab
-No push button in this PoC.
-```
-
-## Out of scope this session
-
-```
-Later add-on: Buzzer after this setup works.
-Pin or resource to reserve and leave unused: GPIO 18 — comment only, do not drive.
-```
+There is no alarm LED, servo, push button, Wi-Fi page, or `page.h` dependency in the updated POC.

@@ -1,3 +1,5 @@
+// LEGACY FILE: the updated laser/LDR/buzzer tripwire has no web page and does not include this header.
+// Keep this file only for archive compatibility; students should not add it as an Arduino tab.
 #ifndef PAGE_H
 #define PAGE_H
 
