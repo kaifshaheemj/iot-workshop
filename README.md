@@ -4,10 +4,11 @@ Morning is theory (playbook + in-site slider). Afternoon is three kit labs, lock
 
 ## Student URLs (after GitHub Pages is on)
 
-- Playbook: `https://<org>.github.io/<repo>/workshop/`
-- Morning slides: `https://<org>.github.io/<repo>/workshop/slides.html`
+- Playbook (main): `https://<org>.github.io/<repo>/workshop/`
+- Morning slides (main): `https://<org>.github.io/<repo>/workshop/slides.html`
+- Nithish preview: `https://<org>.github.io/<repo>/nithish/workshop/`
 
-Enable Pages in the repo: Settings → Pages → Source **GitHub Actions**.
+Enable Pages in the repo: Settings → Pages → Source **GitHub Actions**. Pushes to `main` or `nithish` republish the site. Main stays at `/workshop/`; the `nithish` branch is hosted at `/nithish/` so it does not overwrite Lab 2.
 
 ## Unlock (after lunch)
 

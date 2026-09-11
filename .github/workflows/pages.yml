@@ -2,7 +2,7 @@ name: Pages and workshop zips
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, nithish]
     tags: ["*"]
   workflow_dispatch:
 
@@ -23,21 +23,53 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Assemble site (playbook + slider under /workshop/)
+      - name: Checkout main (live playbook)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: src-main
+      - name: Checkout nithish (preview)
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          ref: nithish
+          path: src-nithish
+      - name: Assemble site
         run: |
           mkdir -p _site/workshop
-          cp -a workshop/. _site/workshop/
+          cp -a src-main/workshop/. _site/workshop/
           touch _site/.nojekyll _site/workshop/.nojekyll
+
+          if [ -d src-nithish/workshop ]; then
+            mkdir -p _site/nithish/workshop
+            cp -a src-nithish/workshop/. _site/nithish/workshop/
+            touch _site/nithish/.nojekyll _site/nithish/workshop/.nojekyll
+            if [ -d src-nithish/sketches ]; then
+              mkdir -p _site/nithish/sketches
+              cp -a src-nithish/sketches/. _site/nithish/sketches/
+            fi
+            if [ -d src-nithish/presentations ]; then
+              mkdir -p _site/nithish/presentations
+              cp -a src-nithish/presentations/. _site/nithish/presentations/
+            fi
+            printf '%s\n' \
+              '<!DOCTYPE html>' \
+              '<html lang="en"><head><meta charset="utf-8">' \
+              '<meta http-equiv="refresh" content="0; url=workshop/">' \
+              '<title>Nithish preview</title>' \
+              '</head><body>' \
+              '<p><a href="workshop/">Open the nithish playbook</a></p>' \
+              '</body></html>' > _site/nithish/index.html
+          fi
+
           printf '%s\n' \
             '<!DOCTYPE html>' \
             '<html lang="en"><head><meta charset="utf-8">' \
-            '<meta http-equiv="refresh" content="0; url=workshop/">' \
             '<title>University IoT workshop</title>' \
-            '<link rel="canonical" href="workshop/">' \
             '</head><body>' \
-            '<p><a href="workshop/">Open the workshop playbook</a></p>' \
-            '<p><a href="workshop/slides.html">Open morning slides</a></p>' \
+            '<p><a href="workshop/">Workshop playbook (main)</a></p>' \
+            '<p><a href="workshop/slides.html">Morning slides (main)</a></p>' \
+            '<p><a href="nithish/workshop/">Nithish preview</a></p>' \
             '</body></html>' > _site/index.html
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -56,10 +88,10 @@ jobs:
           (cd workshop && zip -r ../dist/workshop-morning.zip . -x "*.git*")
           mkdir -p pack/workshop pack/sketches
           cp -a workshop/. pack/workshop/
-          cp -a sketches/traffic pack/sketches/
-          cp -a sketches/tripwire pack/sketches/
-          cp -a sketches/reaction pack/sketches/
-          printf '%s\n' 'Afternoon pack: open workshop/index.html. Arduino sketches are under sketches/traffic, sketches/tripwire, sketches/reaction.' > pack/README.txt
+          if [ -d sketches/traffic ]; then cp -a sketches/traffic pack/sketches/; fi
+          if [ -d sketches/tripwire ]; then cp -a sketches/tripwire pack/sketches/; fi
+          if [ -d sketches/reaction ]; then cp -a sketches/reaction pack/sketches/; fi
+          printf '%s\n' 'Afternoon pack: open workshop/index.html. Arduino sketches are under sketches/.' > pack/README.txt
           (cd pack && zip -r ../dist/workshop-afternoon.zip .)
       - uses: actions/upload-artifact@v4
         with:
