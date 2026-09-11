@@ -151,6 +151,9 @@
   width: 22px;
 }
 
+:root[data-theme="light"] .slides-dots button { background: #aec4bb; }
+:root[data-theme="light"] .slides-dots button[aria-current="true"] { background: var(--accent); }
+
 .slides-controls {
   display: grid;
   grid-template-columns: 140px 1fr 140px;
@@ -176,7 +179,10 @@
   }
   .slides-hint { display: none; }
   .slides-controls .nav-btn-next { grid-column: 2; }
-  .slides-bar .ghost-btn { display: none; }
+  .slides-bar .deck-download,
+  .slides-bar #btn-fullscreen { display: none; }
+  .slides-bar .theme-toggle { display: inline-flex; min-width: 76px; padding-inline: 7px; font-size: var(--fs-small); }
+  .slides-count { display: none; }
   .html-slide { padding: 16px 16px 0; }
   .html-slide h1 { font-size: 18pt; }
 }

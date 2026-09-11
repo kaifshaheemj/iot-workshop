@@ -2,14 +2,15 @@
   Exercise 5: DHT11 temperature and humidity on an LCD
   Board: ESP32 Dev Module
 
-  A bare DHT11 needs a pull-up resistor from DATA to 3.3 V. Most DHT11
-  modules already include one.
+  DHT11 module:
+    DATA -> GPIO 4
+    VCC  -> 3.3 V
+    GND  -> GND
 
-  5 V passive buzzer wiring (use an NPN transistor driver):
-    Buzzer positive (+) -> 5 V
-    Buzzer negative (-) -> transistor collector
-    Transistor emitter  -> GND
-    GPIO 27 -> 1K resistor -> transistor base
+  Buzzer module:
+    IN   -> GPIO 27
+    VCC  -> 5 V
+    GND  -> GND
 
   Required libraries:
     DHT sensor library, Adafruit Unified Sensor
@@ -26,8 +27,8 @@ const uint8_t DHT_PIN = 4;
 const uint8_t SDA_PIN = 21;
 const uint8_t SCL_PIN = 22;
 const uint8_t BUZZER_PIN = 27;
+const uint8_t BUZZER_ACTIVE_LEVEL = HIGH;
 const float TEMPERATURE_LIMIT_C = 35.0f;
-const uint16_t BUZZER_FREQUENCY_HZ = 2000;
 const uint32_t BUZZER_PHASE_MS = 500;
 const uint32_t SENSOR_INTERVAL_MS = 2000;
 
@@ -54,14 +55,15 @@ uint8_t scanForLcd() {
       Serial.println(address, HEX);
 
       if (firstAddress == 0) firstAddress = address;
-      if (address == 0x27 || address == 0x3F) {
-        preferredAddress = address;
-      }
+      if (address == 0x27 || address == 0x3F) preferredAddress = address;
     }
   }
 
-  // Prefer the two common LCD backpack addresses when several devices exist.
   return preferredAddress != 0 ? preferredAddress : firstAddress;
+}
+
+void writeBuzzer(bool on) {
+  digitalWrite(BUZZER_PIN, on ? BUZZER_ACTIVE_LEVEL : !BUZZER_ACTIVE_LEVEL);
 }
 
 void setTemperatureAlarm(bool active, uint32_t now) {
@@ -70,9 +72,7 @@ void setTemperatureAlarm(bool active, uint32_t now) {
   alarmActive = active;
   buzzerSounding = active;
   lastBuzzerChangeAt = now;
-
-  if (buzzerSounding) tone(BUZZER_PIN, BUZZER_FREQUENCY_HZ);
-  else noTone(BUZZER_PIN);
+  writeBuzzer(buzzerSounding);
 }
 
 void updateBuzzer(uint32_t now) {
@@ -80,9 +80,7 @@ void updateBuzzer(uint32_t now) {
 
   lastBuzzerChangeAt = now;
   buzzerSounding = !buzzerSounding;
-
-  if (buzzerSounding) tone(BUZZER_PIN, BUZZER_FREQUENCY_HZ);
-  else noTone(BUZZER_PIN);
+  writeBuzzer(buzzerSounding);
 }
 
 void showError() {
@@ -108,7 +106,7 @@ void showReading(float temperature, float humidity) {
 void setup() {
   Serial.begin(115200);
   pinMode(BUZZER_PIN, OUTPUT);
-  noTone(BUZZER_PIN);
+  writeBuzzer(false);
   dht.begin();
   Wire.begin(SDA_PIN, SCL_PIN);
 

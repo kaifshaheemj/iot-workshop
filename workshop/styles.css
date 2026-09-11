@@ -35,6 +35,69 @@
   --fs-h1: 18pt;
 }
 
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f3f7f5;
+  --surface: #ffffff;
+  --surface-soft: #eaf2ee;
+  --surface-teal: #dcefe8;
+  --line: #cbded6;
+  --line-strong: #9fbbb0;
+  --text: #172720;
+  --muted: #5e746b;
+  --accent: #087f68;
+  --accent-strong: #066b58;
+  --accent-soft: #d9f1e8;
+  --coral: #d95c50;
+  --coral-soft: #fae5e2;
+  --warn: #9b680f;
+  --warn-bg: #fff2d6;
+  --danger: #c43f50;
+  --danger-soft: #fde5e9;
+  --ok: #21864f;
+  --ok-soft: #e0f4e7;
+  --shadow-sm: 0 1px 2px rgba(29, 63, 50, 0.08), 0 10px 28px rgba(29, 63, 50, 0.09);
+  --shadow-lg: 0 28px 80px rgba(29, 63, 50, 0.18);
+}
+
+:root[data-theme="light"] .sidebar,
+:root[data-theme="light"] .topbar,
+:root[data-theme="light"] .step-nav { background: rgba(255, 255, 255, 0.94); }
+:root[data-theme="light"] .text-btn:hover,
+:root[data-theme="light"] .nav-module summary:hover { background: #e2eee9; }
+:root[data-theme="light"] .nav-step:hover { background: #deeee8; }
+:root[data-theme="light"] .nav-module summary em { background: #dce9e4; }
+:root[data-theme="light"] .progress-track { background: #d7e5df; }
+:root[data-theme="light"] .gate-banner,
+:root[data-theme="light"] .facilitator { color: var(--warn); }
+:root[data-theme="light"] .step-view {
+  background: radial-gradient(700px 360px at 100% 0, rgba(39, 112, 94, 0.08), transparent 70%), var(--bg);
+}
+:root[data-theme="light"] .step-view p,
+:root[data-theme="light"] .step-view ul,
+:root[data-theme="light"] .step-view ol,
+:root[data-theme="light"] .html-slide p,
+:root[data-theme="light"] .html-slide li { color: #40564d; }
+:root[data-theme="light"] .hero-card,
+:root[data-theme="light"] .lab-intro,
+:root[data-theme="light"] .unlock-hero { border-color: #a8cec1; background: linear-gradient(135deg, #f7fbf9, #e4f2ed); }
+:root[data-theme="light"] .afternoon-hero { border-color: #e4b8b2; background: linear-gradient(135deg, #fff8f6, #f9e7e3); }
+:root[data-theme="light"] .finish-hero { border-color: #a8d0b8; background: linear-gradient(135deg, #f7fbf9, var(--ok-soft)); }
+:root[data-theme="light"] .presentation-hero { border-color: #b3cedd; background: linear-gradient(135deg, #f7fbfd, #e5f1f6); }
+:root[data-theme="light"] .exercise-hero { border-color: #ddc89d; background: linear-gradient(135deg, #fffdf7, #f7edd6); }
+:root[data-theme="light"] .experiment-card { border-color: #a8cec1; background: linear-gradient(135deg, #f7fbf9, #e4f2ed); }
+:root[data-theme="light"] .data-table th { background: #e4efea; }
+:root[data-theme="light"] .checkpoint { border-color: #a8cbbd; background: #f7fbf9; }
+:root[data-theme="light"] .checkpoint-mark { border-color: #8fb5a7; background: #fff; }
+:root[data-theme="light"] .unlock-hero { border-color: #ddc89d; background: linear-gradient(135deg, #fffdf7, var(--warn-bg)); }
+:root[data-theme="light"] .unlock-row input { background: #fff; }
+:root[data-theme="light"] .traffic-intro { border-color: #d9c37f; background: linear-gradient(135deg, #fffdf4, #f7edcf); }
+:root[data-theme="light"] .tripwire-intro { border-color: #dfb1aa; background: linear-gradient(135deg, #fff8f6, var(--coral-soft)); }
+:root[data-theme="light"] .reaction-intro { border-color: #a8cec1; }
+:root[data-theme="light"] .circuit-figure img { background: #f4f7fb; filter: none; }
+:root[data-theme="light"] .drawer { background: rgba(33, 57, 48, 0.24); }
+:root[data-theme="light"] body.sidebar-open::after { background: rgba(33, 57, 48, 0.2); }
+
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; overflow: hidden; }
 body {
@@ -311,6 +374,7 @@ strong { color: var(--text); }
 .progress-track { height: 6px; overflow: hidden; border-radius: 99px; background: #20352f; }
 .progress-fill { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--accent), #79e8d0); transition: width 0.3s ease; }
 .topbar-link { text-decoration: none; }
+.theme-toggle { min-width: 98px; white-space: nowrap; }
 .ghost-btn,
 .nav-btn,
 .copy-btn,
@@ -700,6 +764,7 @@ body:not(.facilitator-on) .facilitator { display: none; }
   .progress-wrap { min-width: 0; }
   #pin-map-btn { flex: 0 0 46px; width: 46px; overflow: hidden; padding: 8px 4px; font-size: 0; }
   #pin-map-btn::after { content: "Pins"; font-size: var(--fs-small); }
+  .theme-toggle { min-width: 76px; padding-inline: 7px; font-size: var(--fs-small); }
   .progress-meta { font-size: 9pt; }
   .step-meta { flex-wrap: wrap; }
   .step-inner { padding: 22px 16px 36px; }

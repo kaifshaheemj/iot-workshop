@@ -1,4 +1,5 @@
 (function () {
+  const THEME_KEY = "iot-workshop-theme";
   const img = document.getElementById("slide-img");
   const htmlSlide = document.getElementById("html-slide");
   const fallback = document.getElementById("fallback");
@@ -8,9 +9,13 @@
   const btnPrev = document.getElementById("btn-prev");
   const btnNext = document.getElementById("btn-next");
   const stage = document.getElementById("stage");
+  const themeToggle = document.getElementById("theme-toggle");
 
   const state = { items: [], index: 0, title: "From Sensors to Smart Systems" };
 
+  syncThemeToggle();
+  themeToggle.addEventListener("click", toggleTheme);
+  window.addEventListener("storage", syncThemeFromStorage);
   document.getElementById("btn-fullscreen").addEventListener("click", toggleFullscreen);
   btnPrev.addEventListener("click", () => go(-1));
   btnNext.addEventListener("click", () => go(1));
@@ -70,6 +75,38 @@
     document.title = state.title + " — Presentation";
     render();
   });
+
+  function currentTheme() {
+    return document.documentElement.dataset.theme === "light" ? "light" : "dark";
+  }
+
+  function setTheme(theme, persist) {
+    const next = theme === "light" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    if (persist) {
+      try {
+        localStorage.setItem(THEME_KEY, next);
+      } catch {}
+    }
+    syncThemeToggle();
+  }
+
+  function syncThemeToggle() {
+    const light = currentTheme() === "light";
+    themeToggle.textContent = light ? "Dark mode" : "Light mode";
+    themeToggle.setAttribute("aria-pressed", String(light));
+    themeToggle.setAttribute("aria-label", light ? "Switch to dark mode" : "Switch to light mode");
+  }
+
+  function toggleTheme() {
+    setTheme(currentTheme() === "light" ? "dark" : "light", true);
+  }
+
+  function syncThemeFromStorage(event) {
+    if (event.key === THEME_KEY && (event.newValue === "light" || event.newValue === "dark")) {
+      setTheme(event.newValue, false);
+    }
+  }
 
   async function loadDeck() {
     const probed = await probeImages();

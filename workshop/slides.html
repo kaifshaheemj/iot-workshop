@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>From Sensors to Smart Systems — Anna University IoT Workshop</title>
+  <meta name="color-scheme" content="dark light" />
+  <script>
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem("iot-workshop-theme") === "light" ? "light" : "dark";
+    } catch {
+      document.documentElement.dataset.theme = "dark";
+    }
+  </script>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="slides.css" />
 </head>
@@ -13,6 +21,7 @@
     <p class="slides-title" id="deck-title">Morning presentation</p>
     <p class="slides-count" id="slide-count">Slide —</p>
     <a class="ghost-btn deck-download" href="../presentations/From-Sensors-to-Smart-Systems.pptx" download>Download PPT</a>
+    <button type="button" class="ghost-btn theme-toggle" id="theme-toggle" aria-pressed="false">Light mode</button>
     <button type="button" class="ghost-btn" id="btn-fullscreen">Fullscreen</button>
   </header>
 

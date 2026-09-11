@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>IoT Build Lab — Anna University</title>
+  <meta name="color-scheme" content="dark light" />
+  <script>
+    try {
+      document.documentElement.dataset.theme = localStorage.getItem("iot-workshop-theme") === "light" ? "light" : "dark";
+    } catch {
+      document.documentElement.dataset.theme = "dark";
+    }
+  </script>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -43,6 +51,7 @@
           </div>
         </div>
         <a class="ghost-btn topbar-link" href="slides.html">Presentation</a>
+        <button type="button" class="ghost-btn theme-toggle" id="theme-toggle" aria-pressed="false">Light mode</button>
         <button type="button" class="ghost-btn" id="pin-map-btn">Pin reference</button>
       </header>
 

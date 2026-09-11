@@ -28,7 +28,7 @@ function projectDiagram(path, title) {
   return `<figure class="circuit-figure"><img src="${source}" alt="${title} wiring diagram"><figcaption><span>${title}</span><a href="${source}" target="_blank" rel="noopener">Open full diagram</a></figcaption></figure>`;
 }
 
-window.PLAYBOOK_ID = "iot-university-day-v5";
+window.PLAYBOOK_ID = "iot-university-day-v6";
 
 window.PLAYBOOK_META = {
   title: "IoT Build Lab",
@@ -39,10 +39,10 @@ window.PLAYBOOK_META = {
   referenceRows: [
     ["Presentation", "20 slides", "75-minute facilitated block"],
     ["Exercises 1–3", "LEDs and buttons", "GPIO 16–19, 25–27, 32"],
-    ["Exercises 4–5", "LDR 34 or DHT11 4 + 16×2 LCD", "LCD SDA 21 / SCL 22"],
-    ["Exercise 5", "Passive buzzer through NPN driver", "GPIO 27 · separate 5 V load"],
+    ["Exercise 4", "Servo signal 13", "ESP32 5V/VIN + GND"],
+    ["Exercises 5 and 7", "DHT11 4 or LDR 34 + 16×2 LCD", "LCD SDA 21 / SCL 22"],
+    ["Exercise 5", "Buzzer module input 27", "5V + GND"],
     ["Exercises 6 and 8", "SH1106 OLED SDA 21 / SCL 22", "Ultrasonic 5/18 or microphone A0 34"],
-    ["Exercise 7", "Servo signal 13", "External 5 V + common GND"],
   ],
   afternoonReferenceNote: "These pin maps come directly from the final POC sketches. Disconnect USB before changing any wire.",
   afternoonReferenceRows: [
@@ -146,7 +146,7 @@ window.PLAYBOOK = {
               <article><span>Tune</span><h3>Change one value</h3><p>Predict first, upload once, and compare the new behavior with the baseline.</p></article>
             </div>
             <h2>Libraries used later in the sprint</h2>
-            <table class="data-table"><thead><tr><th>Exercises</th><th>Arduino libraries</th></tr></thead><tbody><tr><td>1–3</td><td>No additional libraries</td></tr><tr><td>4</td><td>LiquidCrystal I2C</td></tr><tr><td>5</td><td>DHT sensor library + Adafruit Unified Sensor + LiquidCrystal I2C</td></tr><tr><td>6 and 8</td><td>Adafruit GFX Library + Adafruit SH110X</td></tr><tr><td>7</td><td>ESP32Servo; WiFi and WebServer come with ESP32 support</td></tr></tbody></table>
+            <table class="data-table"><thead><tr><th>Exercises</th><th>Arduino libraries</th></tr></thead><tbody><tr><td>1–3</td><td>No additional libraries</td></tr><tr><td>4</td><td>ESP32Servo; WiFi and WebServer come with ESP32 support</td></tr><tr><td>5</td><td>DHT sensor library + Adafruit Unified Sensor + LiquidCrystal I2C</td></tr><tr><td>6 and 8</td><td>Adafruit GFX Library + Adafruit SH110X</td></tr><tr><td>7</td><td>LiquidCrystal I2C</td></tr></tbody></table>
             <div class="callout warn"><p><strong>Pins are reused.</strong> A GPIO used in one morning exercise may have a different job later. Clear the breadboard and follow the current diagram every time.</p></div>
           `,
         },
@@ -195,7 +195,7 @@ for (uint8_t i = 0; i < LED_COUNT; i++) {
             <p class="lede">Each button is a digital input. Each input drives the LED at the same array position.</p>
             ${exerciseDiagram(2, "Four buttons controlling four LEDs")}
             <table class="data-table"><thead><tr><th>Channel</th><th>Button GPIO</th><th>LED GPIO</th></tr></thead><tbody><tr><td>1</td><td>25</td><td>16</td></tr><tr><td>2</td><td>26</td><td>17</td></tr><tr><td>3</td><td>27</td><td>18</td></tr><tr><td>4</td><td>32</td><td>19</td></tr></tbody></table>
-            <div class="callout"><p>Each input node uses an external 10 kΩ pull-up to 3.3 V and a push button to GND. A pressed button reads <code>LOW</code>. The updated build uses software debounce only—do not add debounce capacitors.</p></div>
+            <div class="callout"><p>Each input node uses an external 10 kΩ pull-up to 3.3 V and a push button to GND. A pressed button reads <code>LOW</code>. Debounce is handled in software, so no debounce capacitors are needed.</p></div>
             ${sketchLink("exercises/Exercise2/Exercise2.ino", "Download Exercise 2 sketch")}
             ${exerciseCodeBlock("The debounce rule", `const uint32_t DEBOUNCE_MS = 25;
 
@@ -243,38 +243,34 @@ delay(2000);`)}
     },
     {
       id: "exercise-4",
-      title: "Exercise 4 · LDR light meter",
+      title: "Exercise 4 · Wi-Fi servo",
       phaseLabel: "Morning · exercise",
       steps: [
         {
           id: "exercise-4-wire",
-          title: "Wire the LDR and 16×2 LCD",
+          title: "Wire the servo to the ESP32",
           duration: "8 min",
-          checkpoint: "LDR A0 is on GPIO 34 with 3.3 V power, and the 16×2 LCD is connected to SDA 21 and SCL 22 with a common ground.",
+          checkpoint: "The servo signal is on GPIO 13, its red power wire is on the ESP32 5V/VIN pin, and its brown or black wire is on ESP32 GND.",
           html: `
-            <div class="exercise-badge">Exercise 4 of 8 · analog light + I²C LCD</div>
-            ${exerciseDiagram(4, "LDR light intensity on 16×2 LCD")}
-            <table class="data-table"><thead><tr><th>Part</th><th>Connection</th></tr></thead><tbody><tr><td>LDR module VCC / GND</td><td>ESP32 3.3V / shared GND</td></tr><tr><td>LDR A0</td><td>GPIO 34</td></tr><tr><td>LDR D0</td><td>Not connected</td></tr><tr><td>LCD SDA / SCL</td><td>GPIO 21 / GPIO 22</td></tr><tr><td>LCD VCC / GND</td><td>5V / shared GND, following the updated diagram</td></tr></tbody></table>
-            <div class="callout danger"><p>A 5 V LCD backpack may pull SDA and SCL up to 5 V. Use a backpack with 3.3 V-safe I²C levels or the bidirectional level shifting specified for the kit. Never expose ESP32 GPIO 21 or 22 to 5 V.</p></div>
+            <div class="exercise-badge">Exercise 4 of 8 · servo + local web page</div>
+            ${exerciseDiagram(4, "Wi-Fi servo angle control")}
+            <table class="data-table"><thead><tr><th>Servo wire</th><th>ESP32 connection</th></tr></thead><tbody><tr><td>Orange/yellow signal</td><td>GPIO 13</td></tr><tr><td>Red power</td><td>5V/VIN</td></tr><tr><td>Brown/black ground</td><td>GND</td></tr></tbody></table>
           `,
         },
         {
           id: "exercise-4-run",
-          title: "Measure relative light intensity",
+          title: "Move the servo from a browser slider",
           duration: "10 min",
-          checkpoint: "Serial and the LCD show the same ADC value and relative light percentage, and I confirmed whether my sensor needs the reversed scale.",
+          checkpoint: "I joined ESP32-Servo, opened the local page, moved the servo with the 0–180° slider, and identified a useful movement range.",
           html: `
-            ${sketchLink("exercises/Exercise4/Exercise4.ino", "Download updated Exercise 4 sketch")}
-            ${exerciseCodeBlock("Detect the LCD and map the LDR", `const uint8_t LDR_A0_PIN = 34;
-const bool REVERSE_LIGHT_SCALE = true;
-
-uint8_t lcdAddress = scanForLcd();
-uint16_t raw = analogRead(LDR_A0_PIN);
-uint8_t lightPercent = REVERSE_LIGHT_SCALE
-  ? map(raw, 4095, 0, 0, 100)
-  : map(raw, 0, 4095, 0, 100);`)}
-            <ol class="steps-ol action-list"><li><strong>Install</strong><span>Install LiquidCrystal I2C from Arduino Library Manager.</span></li><li><strong>Upload</strong><span>Serial at 115200 scans the bus and reports the LCD address, usually 0x27 or 0x3F.</span></li><li><strong>Compare</strong><span>Shine light on the LDR, then shade it. Confirm the displayed percentage moves in the expected direction.</span></li><li><strong>Correct direction</strong><span>If brighter light makes the percentage fall, toggle <code>REVERSE_LIGHT_SCALE</code> and retest.</span></li></ol>
-            <div class="callout"><p>The percentage is a relative light level, not calibrated lux. Use the raw ADC number when comparing sensors or lighting conditions.</p></div>
+            ${sketchLink("exercises/Exercise4/Exercise4.ino", "Download Exercise 4 sketch")}
+            <ol class="steps-ol action-list"><li><strong>Install</strong><span>Install ESP32Servo. WiFi and WebServer come with the ESP32 board package.</span></li><li><strong>Upload</strong><span>Serial at 115200 prints the access-point name and local IP.</span></li><li><strong>Connect</strong><span>Join <strong>ESP32-Servo</strong> with password <code>esp32demo</code>.</span></li><li><strong>Open</strong><span>Browse to <strong>http://192.168.4.1</strong> and move the angle slider.</span></li></ol>
+            ${exerciseCodeBlock("Validate the requested angle", `void handleServo() {
+  servoAngle = constrain(server.arg("angle").toInt(), 0, 180);
+  servoMotor.write(servoAngle);
+  server.send(200, "text/plain", String(servoAngle));
+}`)}
+            <section class="experiment-card"><p class="experiment-label">Change and observe</p><h3>Choose a useful servo range</h3><p>Move the slider and compare the commanded angle with the servo arm position.</p></section>
           `,
         },
       ],
@@ -286,14 +282,13 @@ uint8_t lightPercent = REVERSE_LIGHT_SCALE
       steps: [
         {
           id: "exercise-5-wire",
-          title: "Wire DHT11, LCD, and buzzer driver",
+          title: "Wire DHT11, LCD, and buzzer module",
           duration: "8 min",
-          checkpoint: "DHT11 data is on GPIO 4, the LCD is on SDA 21/SCL 22, and GPIO 27 drives the 5 V passive buzzer only through the 1 kΩ resistor and NPN transistor.",
+          checkpoint: "DHT11 data is on GPIO 4, the LCD is on SDA 21/SCL 22, and the buzzer module input is on GPIO 27.",
           html: `
             <div class="exercise-badge">Exercise 5 of 8 · environmental sensor + alarm</div>
             ${exerciseDiagram(5, "DHT11 temperature alarm on 16×2 LCD")}
-            <table class="data-table"><thead><tr><th>Part</th><th>Connection</th></tr></thead><tbody><tr><td>DHT11 VCC / GND / DATA</td><td>3.3V / shared GND / GPIO 4</td></tr><tr><td>LCD VCC / GND</td><td>5V / shared GND</td></tr><tr><td>LCD SDA / SCL</td><td>GPIO 21 / GPIO 22 through 3.3 V-safe I²C levels</td></tr><tr><td>Buzzer positive</td><td>5V</td></tr><tr><td>Buzzer negative</td><td>NPN transistor collector</td></tr><tr><td>NPN emitter</td><td>Shared GND</td></tr><tr><td>NPN base</td><td>GPIO 27 through 1 kΩ</td></tr></tbody></table>
-            <div class="callout danger"><p>Never connect the 5 V passive buzzer directly to GPIO 27. The transistor is the load driver. Also keep 5 V LCD pull-ups away from ESP32 SDA/SCL by using the kit's 3.3 V-safe interface.</p></div>
+            <table class="data-table"><thead><tr><th>Part</th><th>Connection</th></tr></thead><tbody><tr><td>DHT11 VCC / GND / DATA</td><td>3.3V / GND / GPIO 4</td></tr><tr><td>LCD VCC / GND</td><td>5V / GND</td></tr><tr><td>LCD SDA / SCL</td><td>GPIO 21 / GPIO 22</td></tr><tr><td>Buzzer module VCC / GND</td><td>5V / GND</td></tr><tr><td>Buzzer module IN</td><td>GPIO 27</td></tr></tbody></table>
             <div class="callout"><p>A bare DHT11 needs a DATA-to-3.3V pull-up resistor. Most three-pin DHT11 modules already include it.</p></div>
           `,
         },
@@ -303,17 +298,17 @@ uint8_t lightPercent = REVERSE_LIGHT_SCALE
           duration: "9 min",
           checkpoint: "The LCD and Serial show temperature and humidity, and the buzzer alternates 500 ms on/off only when temperature exceeds the configured limit.",
           html: `
-            ${sketchLink("exercises/Exercise5/Exercise5.ino", "Download updated Exercise 5 sketch")}
+            ${sketchLink("exercises/Exercise5/Exercise5.ino", "Download Exercise 5 sketch")}
             ${exerciseCodeBlock("Temperature decision and non-blocking buzzer", `const float TEMPERATURE_LIMIT_C = 35.0f;
-const uint16_t BUZZER_FREQUENCY_HZ = 2000;
+const uint8_t BUZZER_ACTIVE_LEVEL = HIGH;
 const uint32_t BUZZER_PHASE_MS = 500;
 
 setTemperatureAlarm(temperature > TEMPERATURE_LIMIT_C, now);
 
 if (alarmActive && now - lastBuzzerChangeAt >= BUZZER_PHASE_MS) {
   buzzerSounding = !buzzerSounding;
-  if (buzzerSounding) tone(BUZZER_PIN, BUZZER_FREQUENCY_HZ);
-  else noTone(BUZZER_PIN);
+  digitalWrite(BUZZER_PIN,
+               buzzerSounding ? BUZZER_ACTIVE_LEVEL : !BUZZER_ACTIVE_LEVEL);
 }`)}
             <ol class="steps-ol action-list"><li><strong>Install</strong><span>DHT sensor library, Adafruit Unified Sensor, and LiquidCrystal I2C.</span></li><li><strong>Upload</strong><span>Serial at 115200 reports the detected LCD address and new sensor readings every two seconds.</span></li><li><strong>Prove the safe baseline</strong><span>At normal room temperature, readings update and the buzzer stays silent.</span></li><li><strong>Test without overheating</strong><span>Temporarily set <code>TEMPERATURE_LIMIT_C</code> slightly below the measured room value, verify the beep pattern, then restore 35 °C.</span></li></ol>
             <div class="callout warn"><p>If a DHT read fails, the display reports the error. Correct wiring first; do not shorten the two-second sensor interval.</p></div>
@@ -328,14 +323,13 @@ if (alarmActive && now - lastBuzzerChangeAt >= BUZZER_PHASE_MS) {
       steps: [
         {
           id: "exercise-6-wire",
-          title: "Confirm the 3.3 V ultrasonic variant",
+          title: "Wire the ultrasonic sensor and SH1106",
           duration: "8 min",
-          checkpoint: "I verified the supplied sensor is the specified 3.3 V-compatible HC-SR04 variant before connecting ECHO directly to GPIO 18; the SH1106 OLED is on SDA 21/SCL 22.",
+          checkpoint: "The HC-SR04 uses 3.3 V, TRIG is on GPIO 5, ECHO is on GPIO 18, and the SH1106 OLED is on SDA 21/SCL 22.",
           html: `
             <div class="exercise-badge">Exercise 6 of 8 · ultrasonic timing + SH1106 OLED</div>
             ${exerciseDiagram(6, "3.3 V HC-SR04 distance on SH1106 OLED")}
-            <table class="data-table"><thead><tr><th>Part</th><th>Connection</th></tr></thead><tbody><tr><td>3.3 V-compatible HC-SR04 VCC / GND</td><td>3.3V / shared GND</td></tr><tr><td>TRIG</td><td>GPIO 5</td></tr><tr><td>ECHO</td><td>GPIO 18 directly—only for the specified 3.3 V-output variant</td></tr><tr><td>SH1106 OLED VCC / GND</td><td>3.3V / shared GND</td></tr><tr><td>OLED SDA / SCL</td><td>GPIO 21 / GPIO 22</td></tr><tr><td>OLED address</td><td><code>0x3C</code></td></tr></tbody></table>
-            <div class="callout danger"><p><strong>Stop if the sensor is a standard 5 V-output HC-SR04.</strong> Its ECHO pin must not connect directly to the ESP32. Use the specifically supplied 3.3 V-compatible variant, or add a proper divider and follow a matching diagram.</p></div>
+            <table class="data-table"><thead><tr><th>Part</th><th>Connection</th></tr></thead><tbody><tr><td>3.3 V-compatible HC-SR04 VCC / GND</td><td>3.3V / shared GND</td></tr><tr><td>TRIG</td><td>GPIO 5</td></tr><tr><td>ECHO</td><td>GPIO 18</td></tr><tr><td>SH1106 OLED VCC / GND</td><td>3.3V / shared GND</td></tr><tr><td>OLED SDA / SCL</td><td>GPIO 21 / GPIO 22</td></tr><tr><td>OLED address</td><td><code>0x3C</code></td></tr></tbody></table>
           `,
         },
         {
@@ -344,7 +338,7 @@ if (alarmActive && now - lastBuzzerChangeAt >= BUZZER_PHASE_MS) {
           duration: "10 min",
           checkpoint: "The SH1106 and Serial show the same distance, a flat target tracks toward and away, and an out-of-range test reports No echo.",
           html: `
-            ${sketchLink("exercises/Exercise6/Exercise6.ino", "Download updated Exercise 6 sketch")}
+            ${sketchLink("exercises/Exercise6/Exercise6.ino", "Download Exercise 6 sketch")}
             ${exerciseCodeBlock("Measure the round-trip pulse", `uint32_t duration = pulseIn(ECHO_PIN, HIGH, ECHO_TIMEOUT_US);
 if (duration == 0) return -1.0f;
 return duration * 0.0343f / 2.0f;`)}
@@ -356,36 +350,37 @@ return duration * 0.0343f / 2.0f;`)}
     },
     {
       id: "exercise-7",
-      title: "Exercise 7 · Wi-Fi servo",
+      title: "Exercise 7 · LDR light meter",
       phaseLabel: "Morning · exercise",
       steps: [
         {
           id: "exercise-7-wire",
-          title: "Wire a safely powered servo",
+          title: "Wire the LDR and 16×2 LCD",
           duration: "8 min",
-          checkpoint: "The servo signal is on GPIO 13, its red wire uses a suitable external 5 V supply, and the supply, servo, and ESP32 grounds are joined.",
+          checkpoint: "LDR A0 is on GPIO 34 with 3.3 V power, and the 16×2 LCD is connected to SDA 21 and SCL 22 with a common ground.",
           html: `
-            <div class="exercise-badge">Exercise 7 of 8 · servo + local web page</div>
-            ${exerciseDiagram(7, "Wi-Fi servo angle control")}
-            <table class="data-table"><thead><tr><th>Servo wire</th><th>Connection</th></tr></thead><tbody><tr><td>Orange/yellow signal</td><td>GPIO 13</td></tr><tr><td>Red power</td><td>Suitable external regulated 5 V</td></tr><tr><td>Brown/black ground</td><td>External supply GND and ESP32 GND</td></tr></tbody></table>
-            <div class="callout warn"><p>Do not power the servo from an ESP32 GPIO. Disconnect power before attaching or moving the servo arm, and begin with no mechanical load.</p></div>
-            <div class="callout"><p>The updated Exercise 7 has no relay. Remove all relay wiring from the previous version before powering this circuit.</p></div>
+            <div class="exercise-badge">Exercise 7 of 8 · analog light + I²C LCD</div>
+            ${exerciseDiagram(7, "LDR light intensity on 16×2 LCD")}
+            <table class="data-table"><thead><tr><th>Part</th><th>Connection</th></tr></thead><tbody><tr><td>LDR module VCC / GND</td><td>ESP32 3.3V / GND</td></tr><tr><td>LDR A0</td><td>GPIO 34</td></tr><tr><td>LDR D0</td><td>Not connected</td></tr><tr><td>LCD SDA / SCL</td><td>GPIO 21 / GPIO 22</td></tr><tr><td>LCD VCC / GND</td><td>5V / GND</td></tr></tbody></table>
           `,
         },
         {
           id: "exercise-7-run",
-          title: "Move the servo from a browser slider",
+          title: "Measure relative light intensity",
           duration: "10 min",
-          checkpoint: "I joined ESP32-Servo, opened the local page, moved the servo with the 0–180° slider, and identified a safe mechanical range.",
+          checkpoint: "Serial and the LCD show the same ADC value and relative light percentage, and I confirmed whether my sensor needs the reversed scale.",
           html: `
-            ${sketchLink("exercises/Exercise7/Exercise7.ino", "Download updated Exercise 7 sketch")}
-            <ol class="steps-ol action-list"><li><strong>Install</strong><span>Install ESP32Servo. WiFi and WebServer come with the ESP32 board package.</span></li><li><strong>Upload</strong><span>Serial at 115200 prints the access-point name and local IP.</span></li><li><strong>Connect</strong><span>Join <strong>ESP32-Servo</strong> with password <code>esp32demo</code>.</span></li><li><strong>Open</strong><span>Browse to <strong>http://192.168.4.1</strong> and move the angle slider gradually.</span></li></ol>
-            ${exerciseCodeBlock("Validate the requested angle", `void handleServo() {
-  servoAngle = constrain(server.arg("angle").toInt(), 0, 180);
-  servoMotor.write(servoAngle);
-  server.send(200, "text/plain", String(servoAngle));
-}`)}
-            <section class="experiment-card"><p class="experiment-label">Change and observe</p><h3>Choose a safe servo range</h3><p>Move slowly. If an attached arm approaches a stop or binds, reduce the page slider's minimum or maximum before continuing.</p></section>
+            ${sketchLink("exercises/Exercise7/Exercise7.ino", "Download Exercise 7 sketch")}
+            ${exerciseCodeBlock("Detect the LCD and map the LDR", `const uint8_t LDR_A0_PIN = 34;
+const bool REVERSE_LIGHT_SCALE = true;
+
+uint8_t lcdAddress = scanForLcd();
+uint16_t raw = analogRead(LDR_A0_PIN);
+uint8_t lightPercent = REVERSE_LIGHT_SCALE
+  ? map(raw, 4095, 0, 0, 100)
+  : map(raw, 0, 4095, 0, 100);`)}
+            <ol class="steps-ol action-list"><li><strong>Install</strong><span>Install LiquidCrystal I2C from Arduino Library Manager.</span></li><li><strong>Upload</strong><span>Serial at 115200 scans the bus and reports the LCD address, usually 0x27 or 0x3F.</span></li><li><strong>Compare</strong><span>Shine light on the LDR, then shade it. Confirm the displayed percentage moves in the expected direction.</span></li><li><strong>Correct direction</strong><span>If brighter light makes the percentage fall, toggle <code>REVERSE_LIGHT_SCALE</code> and retest.</span></li></ol>
+            <div class="callout"><p>The percentage is a relative light level, not calibrated lux. Use the raw ADC number when comparing lighting conditions.</p></div>
           `,
         },
       ],
@@ -405,7 +400,6 @@ return duration * 0.0343f / 2.0f;`)}
             ${exerciseDiagram(8, "Analog clap counter on SH1106 OLED")}
             <table class="data-table"><thead><tr><th>Part</th><th>Connection</th></tr></thead><tbody><tr><td>Microphone VCC / GND</td><td>3.3V / shared GND</td></tr><tr><td>Microphone A0</td><td>GPIO 34</td></tr><tr><td>Microphone D0</td><td>Not connected</td></tr><tr><td>SH1106 VCC / GND</td><td>3.3V / shared GND</td></tr><tr><td>OLED SDA / SCL</td><td>GPIO 21 / GPIO 22</td></tr><tr><td>OLED address</td><td><code>0x3C</code></td></tr></tbody></table>
             <div class="callout"><p>Keep the room quiet for the first second after reset. The sketch averages 500 microphone samples to learn the background baseline before counting claps.</p></div>
-            <div class="callout warn"><p>The updated build uses microphone <strong>A0</strong>, not D0, and has no relay. Remove old relay wiring before uploading.</p></div>
           `,
         },
         {
@@ -414,7 +408,7 @@ return duration * 0.0343f / 2.0f;`)}
           duration: "8 min",
           checkpoint: "Each deliberate clap increments the OLED counter once, ordinary room noise does not count, and I tuned CLAP_THRESHOLD or CLAP_LOCKOUT_MS using Serial evidence.",
           html: `
-            ${sketchLink("exercises/Exercise8/Exercise8.ino", "Download updated Exercise 8 sketch")}
+            ${sketchLink("exercises/Exercise8/Exercise8.ino", "Download Exercise 8 sketch")}
             ${exerciseCodeBlock("Measure deviation from the learned baseline", `uint16_t rawValue = analogRead(MIC_A0_PIN);
 uint16_t signalLevel = abs((int)rawValue - (int)microphoneBaseline);
 
@@ -642,9 +636,9 @@ if (millis() - overrideStartedAt >= OVERRIDE_TIME) {
           id: "tripwire-goal",
           title: "Mission: detect a broken beam",
           duration: "3 min",
-          checkpoint: "I can explain the updated Tripwire: the laser makes the line, the LDR measures it, and the buzzer sounds when the measured beam disappears.",
+          checkpoint: "I can explain the Tripwire: the laser makes the line, the LDR measures it, and the buzzer sounds when the measured beam disappears.",
           html: `
-            <section class="lab-intro tripwire-intro"><div><p class="hero-label">Lab 02 · intruder detection</p><h2>Turn a silent line of light into an audible alarm.</h2><p>This updated build uses only the ESP32, laser module, LDR module, and active buzzer module. It has no servo, alarm LED, or web page.</p></div><div class="beam-illustration"><i></i><span></span><b></b></div></section>
+            <section class="lab-intro tripwire-intro"><div><p class="hero-label">Lab 02 · intruder detection</p><h2>Turn a silent line of light into an audible alarm.</h2><p>This build uses only the ESP32, laser module, LDR module, and active buzzer module. It has no servo, alarm LED, or web page.</p></div><div class="beam-illustration"><i></i><span></span><b></b></div></section>
             <div class="concept-grid three"><article><p class="concept-label">Sense</p><h3>LDR AO · GPIO 34</h3><p>Read light as a value from 0 to 4095.</p></article><article><p class="concept-label">Decide</p><h3>Your measured threshold</h3><p>On this kit, a blocked beam gives a lower value.</p></article><article><p class="concept-label">Act</p><h3>Buzzer SIG · GPIO 27</h3><p>HIGH sounds the alarm; LOW keeps it quiet.</p></article></div>
             <div class="evidence-box"><strong>Final proof</strong><p>Beam present: Serial says NORMAL and the buzzer is quiet. Hand through the beam: Serial says INTRUDER DETECTED and the buzzer sounds.</p></div>
           `,
@@ -682,7 +676,7 @@ void loop() {
   Serial.println(analogRead(LDR_PIN));
   delay(200);
 }`)}
-            <ol class="steps-ol action-list"><li><strong>Beam on</strong><span>Write a stable reading while the laser hits the LDR.</span></li><li><strong>Beam blocked</strong><span>Place a hand in the path and write the new reading.</span></li><li><strong>Check direction</strong><span>The updated final code expects the blocked reading to be lower.</span></li><li><strong>Calculate</strong><span><code>THRESHOLD = (beam-on + blocked) / 2</code>.</span></li></ol>
+            <ol class="steps-ol action-list"><li><strong>Beam on</strong><span>Write a stable reading while the laser hits the LDR.</span></li><li><strong>Beam blocked</strong><span>Place a hand in the path and write the new reading.</span></li><li><strong>Check direction</strong><span>The final code treats the blocked reading as lower.</span></li><li><strong>Calculate</strong><span><code>THRESHOLD = (beam-on + blocked) / 2</code>.</span></li></ol>
             <div class="callout warn"><p>If your hardware reads higher when blocked, do not guess: reverse the final comparison from <code>&lt;</code> to <code>&gt;</code> and retest both conditions.</p></div>
           `,
         },

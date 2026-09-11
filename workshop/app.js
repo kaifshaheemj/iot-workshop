@@ -1,4 +1,5 @@
 (function () {
+  const THEME_KEY = "iot-workshop-theme";
   const prefix = window.PLAYBOOK_ID || "iot-day";
   const STORAGE = {
     step: prefix + "-step",
@@ -51,15 +52,19 @@
     currentPhase: document.getElementById("current-phase"),
     currentModule: document.getElementById("current-module"),
     sidebarProgress: document.getElementById("sidebar-progress"),
+    themeToggle: document.getElementById("theme-toggle"),
   };
 
   if (state.facilitator) document.body.classList.add("facilitator-on");
+  syncThemeToggle();
   applyMeta();
   bindEvents();
   render();
 
   function bindEvents() {
     document.getElementById("reset-progress").addEventListener("click", resetProgress);
+    els.themeToggle.addEventListener("click", toggleTheme);
+    window.addEventListener("storage", syncThemeFromStorage);
     document.getElementById("pin-map-btn").addEventListener("click", () => setHidden(els.drawer, false));
     document.getElementById("pin-map-close").addEventListener("click", () => setHidden(els.drawer, true));
     els.drawer.addEventListener("click", (event) => {
@@ -88,6 +93,38 @@
       if (event.key === "ArrowLeft") go(-1);
       if (event.key === "ArrowRight") tryNext();
     });
+  }
+
+  function currentTheme() {
+    return document.documentElement.dataset.theme === "light" ? "light" : "dark";
+  }
+
+  function setTheme(theme, persist) {
+    const next = theme === "light" ? "light" : "dark";
+    document.documentElement.dataset.theme = next;
+    if (persist) {
+      try {
+        localStorage.setItem(THEME_KEY, next);
+      } catch {}
+    }
+    syncThemeToggle();
+  }
+
+  function syncThemeToggle() {
+    const light = currentTheme() === "light";
+    els.themeToggle.textContent = light ? "Dark mode" : "Light mode";
+    els.themeToggle.setAttribute("aria-pressed", String(light));
+    els.themeToggle.setAttribute("aria-label", light ? "Switch to dark mode" : "Switch to light mode");
+  }
+
+  function toggleTheme() {
+    setTheme(currentTheme() === "light" ? "dark" : "light", true);
+  }
+
+  function syncThemeFromStorage(event) {
+    if (event.key === THEME_KEY && (event.newValue === "light" || event.newValue === "dark")) {
+      setTheme(event.newValue, false);
+    }
   }
 
   function afternoonOpen() {
