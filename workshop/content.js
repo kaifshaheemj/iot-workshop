@@ -110,7 +110,8 @@ window.PLAYBOOK = {
             </section>
             <div class="presentation-actions">
               <a class="download-link primary-link" href="slides.html">Open the presentation<span aria-hidden="true">→</span></a>
-              <a class="download-link" href="assets/From-Sensors-to-Smart-Systems.pptx" download>Download the original PPT<span aria-hidden="true">↓</span></a>
+              <a class="download-link" href="../presentations/From-Sensors-to-Smart-Systems.pptx" download>Download the workshop presentation<span aria-hidden="true">↓</span></a>
+              <a class="download-link" href="../presentations/IOT-Workshop-Prep-Book.pptx" download>Download the prep book<span aria-hidden="true">↓</span></a>
             </div>
             <div class="concept-grid three">
               <article><p class="concept-label">Part 1</p><h3>ESP32 foundations</h3><p>Processor, memory, GPIO, ADC, PWM, and electrical safety.</p></article>

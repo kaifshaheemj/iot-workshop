@@ -26,9 +26,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Assemble site (playbook, slides, and downloadable sketches)
         run: |
-          mkdir -p _site/workshop _site/sketches
+          mkdir -p _site/workshop _site/sketches _site/presentations
           cp -a workshop/. _site/workshop/
           cp -a sketches/. _site/sketches/
+          cp -a presentations/. _site/presentations/
           touch _site/.nojekyll _site/workshop/.nojekyll
           printf '%s\n' \
             '<!DOCTYPE html>' \
@@ -53,14 +54,16 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build offline zip packs
         run: |
-          mkdir -p dist morning-pack/workshop morning-pack/sketches
+          mkdir -p dist morning-pack/workshop morning-pack/sketches morning-pack/presentations
           cp -a workshop/. morning-pack/workshop/
           cp -a sketches/exercises morning-pack/sketches/
+          cp -a presentations/. morning-pack/presentations/
           printf '%s\n' 'Morning pack: open workshop/index.html. The presentation and Exercises 1-8 are included for offline use.' > morning-pack/README.txt
           (cd morning-pack && zip -r ../dist/workshop-morning.zip . -x "*.git*")
-          mkdir -p pack/workshop pack/sketches
+          mkdir -p pack/workshop pack/sketches pack/presentations
           cp -a workshop/. pack/workshop/
           cp -a sketches/exercises pack/sketches/
+          cp -a presentations/. pack/presentations/
           cp -a sketches/traffic pack/sketches/
           cp -a sketches/tripwire pack/sketches/
           cp -a sketches/reaction pack/sketches/

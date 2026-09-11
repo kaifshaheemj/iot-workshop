@@ -9,15 +9,6 @@
   const btnNext = document.getElementById("btn-next");
   const stage = document.getElementById("stage");
 
-  const PREP = (window.PREPBOOK_SLIDES || []).map((slide) => ({
-    type: "html",
-    theme: slide.theme || "",
-    htmlFull: slide.htmlFull || "",
-    kicker: slide.kicker,
-    title: slide.title,
-    html: slide.html,
-  }));
-
   const state = { items: [], index: 0, title: "From Sensors to Smart Systems" };
 
   document.getElementById("btn-fullscreen").addEventListener("click", toggleFullscreen);
@@ -86,7 +77,7 @@
     if (rasters.length) {
       return { title: state.title, items: rasters.map((src) => ({ type: "img", src })) };
     }
-    return { title: state.title, items: PREP };
+    return { title: state.title, items: [] };
   }
 
   function probeOne(url) {
