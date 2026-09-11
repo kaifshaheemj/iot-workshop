@@ -182,45 +182,258 @@ window.PLAYBOOK = {
     },
     {
       id: "tripwire",
-      title: "Lab 2 — Tripwire and door",
+      title: "Lab 2 — Intruder detection",
       phase: "afternoon",
       teaser: "Afternoon 2 — locked until lunch",
       steps: [
         {
           id: "tripwire-goal",
-          title: "Lab 2 goal",
-          checkpoint: "I know success: a broken laser beam flags an intruder, the servo closes the door, and the web page can open or close the door.",
+          title: "What you are building",
+          checkpoint: "I can say the objective in one sentence: a laser beam across a space; if something crosses it, Serial says INTRUDER DETECTED and the buzzer sounds.",
+          facilitator: "Do not start with the pin table. Ask what success looks like. Lab 1 used GPIO 25 and 27 for LEDs — those wires come off first.",
           html: `
-            <p class="lede">Aim a laser at an LDR. When the beam breaks, Serial says INTRUDER DETECTED, the alarm LED turns on, and a servo closes a cardboard “door.” The board page can also open or close that door.</p>
-            <p>Wi-Fi <strong>IntruderLab</strong> — <strong>http://192.168.4.1</strong>.</p>
-            <p>No extra practice button. Only the LDR, laser, LED, and servo from this PoC.</p>
+            <p class="lede">A silent line of light. If something walks through it, the board notices and shouts. That is the whole lab.</p>
+            <p>Sense → decide → act, with only what is on the table: ESP32, breadboard, jumper wires, laser, LDR, buzzer. No extra LED. No servo. No web page.</p>
+            <div class="callout warn">
+              <p>GPIO 25 and GPIO 27 were Lab 1 LED pins. Pull those LED wires off before you start. You will reuse the pins for laser and buzzer.</p>
+            </div>
+            <div class="only-beginner callout">
+              <p>You already used analog numbers this morning. Here the analog number is “is the beam still there?” The digital shout is the buzzer.</p>
+            </div>
           `,
         },
         {
-          id: "tripwire-wire",
-          title: "Wire tripwire and servo",
-          checkpoint: "LDR on GPIO 34, alarm LED on GPIO 5, servo signal on GPIO 13. Laser powered and aimed at the LDR.",
+          id: "tripwire-roles",
+          title: "Three parts, three jobs",
+          checkpoint: "I can name the jobs: laser makes the line, LDR is an analog eye, buzzer is the shout. I have not wired them yet.",
+          quiz: {
+            prompt: "If a hand blocks the beam, what should change first?",
+            choices: ["The buzzer pin, because the alarm is the point", "The analog number from the LDR, because that is the only sensor", "The laser turns itself off"],
+            answer: "The analog number from the LDR, because that is the only sensor",
+            explain: "The buzzer is an output. It should follow a decision about a number. First you need that number to move when the beam breaks.",
+            wrong: "The shout cannot happen until the eye sees a change. Try again.",
+          },
+          facilitator: "If they guess the buzzer first, ask: how does the chip know anything happened?",
           html: `
+            <p class="lede">Before a single jumper: what is each part for?</p>
             <table class="data-table">
-              <thead><tr><th>Part</th><th>ESP32</th></tr></thead>
+              <thead><tr><th>Part</th><th>Job</th><th>Kind of pin</th></tr></thead>
               <tbody>
-                <tr><td>LDR AO</td><td>GPIO 34</td></tr>
-                <tr><td>LDR VCC / GND</td><td>3.3V / GND</td></tr>
-                <tr><td>Alarm LED</td><td>GPIO 5 through 220 ohm</td></tr>
-                <tr><td>Servo signal</td><td>GPIO 13</td></tr>
-                <tr><td>Servo VCC</td><td>5V if the module needs it (external 5V if USB browns out)</td></tr>
-                <tr><td>Laser</td><td>Own 3.3V or 5V per rating, aimed at the LDR</td></tr>
+                <tr><td>Laser</td><td>Draw a thin line of light toward the LDR</td><td>Digital output — on or off</td></tr>
+                <tr><td>LDR</td><td>Turn “how much light hits me” into a number 0–4095</td><td>Analog input</td></tr>
+                <tr><td>Buzzer</td><td>Make noise when the code decides the beam is gone</td><td>Digital output — on or off</td></tr>
               </tbody>
             </table>
-            <p>Calibrate THRESHOLD like morning analog: beam on vs hand blocking. Sketch: <code>sketches/tripwire/tripwire.ino</code>.</p>
+            <div class="accordion">
+              <details>
+                <summary>Optional — guess larger or smaller (skip if you prefer to measure first)</summary>
+                <p>Write a guess in your notebook (do not look up 1800 yet): if you cover the LDR, does the Serial number get <strong>larger</strong> or <strong>smaller</strong>? You will measure in a later step. This guess is not a checkpoint.</p>
+              </details>
+              <details>
+                <summary>Click to enlarge — baud rate and what the numbers mean</summary>
+                <p>Serial is text over USB. <strong>Baud</strong> is how fast those characters travel. The sketch will say <code>Serial.begin(115200)</code>. The Serial Monitor dropdown must also be <strong>115200</strong>. If they do not match, you see garbage — not a real light reading.</p>
+                <table class="data-table">
+                  <thead><tr><th>What Serial prints</th><th>What it represents</th></tr></thead>
+                  <tbody>
+                    <tr><td>Garbled symbols</td><td>Wrong baud. Fix the dropdown first.</td></tr>
+                    <tr><td>A whole number 0–4095</td><td><code>analogRead</code> on the ESP32 (12-bit). That is the LDR “eye.”</td></tr>
+                    <tr><td>A high number (toward 4095)</td><td>More light hitting this module — beam on the LDR.</td></tr>
+                    <tr><td>A low number (toward 0)</td><td>Less light — a hand covering the window.</td></tr>
+                  </tbody>
+                </table>
+                <p>Think with that map, then guess. Do not copy 1800 yet. 1800 is only a midpoint after you have two real readings from your desk.</p>
+              </details>
+            </div>
+            <div class="hide-expert callout">
+              <p>Digital is HIGH or LOW. Analog is a range. Mixing them up is how people put a buzzer on an analog-only pin.</p>
+            </div>
+          `,
+        },
+        {
+          id: "tripwire-power",
+          title: "Power and ground first",
+          checkpoint: "Every module shares GND with the ESP32. LDR VCC is on 3.3V. I have not attached the three signal wires yet.",
+          facilitator: "If a module stays dead, ask: is GND common? Do not grab their 5V rail for them.",
+          html: `
+            <p>What would happen if the LDR and the ESP32 did not share ground? The analog pin would be guessing in the dark — no common 0 V, no honest number.</p>
+            <table class="data-table">
+              <thead><tr><th>Wire</th><th>Where</th><th>Why</th></tr></thead>
+              <tbody>
+                <tr><td>All GND pins</td><td>ESP32 GND (same rail on the breadboard)</td><td>One 0 V for laser, LDR, and buzzer</td></tr>
+                <tr><td>LDR VCC</td><td>ESP32 3.3V</td><td>ESP32 analog pins are 3.3V. Do not feed the LDR from 5V into GPIO 34</td></tr>
+              </tbody>
+            </table>
+            <p class="only-beginner">The red rail can be 3.3V, the blue rail GND. Keep Lab 1 LEDs off those rails if they still sit on 25 and 27.</p>
+          `,
+        },
+        {
+          id: "tripwire-ldr",
+          title: "Connect the eye — LDR",
+          checkpoint: "I can say why the LDR analog wire is on GPIO 34, not on 25 or 27. AO is on 34, VCC on 3.3V, GND shared.",
+          quiz: {
+            prompt: "Why GPIO 34 for the LDR, not GPIO 25?",
+            choices: ["34 is ADC1 analog in. analogRead belongs there. 25 is a digital output we will use for the laser.", "34 is closer on the breadboard.", "34 can drive more current for the buzzer later."],
+            answer: "34 is ADC1 analog in. analogRead belongs there. 25 is a digital output we will use for the laser.",
+            explain: "GPIO 34 is input-only analog. Never put the buzzer or the laser drive on it.",
+            wrong: "Think about analog vs digital. Which pin can analogRead?",
+          },
+          html: `
+            <p>The LDR is the only thing that <em>reads</em> the world. Give it the analog pin first.</p>
+            <table class="data-table">
+              <thead><tr><th>LDR pin</th><th>Goes to</th><th>Job</th></tr></thead>
+              <tbody>
+                <tr><td>AO (analog out)</td><td>GPIO 34</td><td>The number 0–4095</td></tr>
+                <tr><td>VCC</td><td>3.3V</td><td>Power for the module</td></tr>
+                <tr><td>GND</td><td>GND</td><td>Common 0 V</td></tr>
+              </tbody>
+            </table>
+            <p>GPIO 34 cannot be an output. If you later want a shout, that shout needs a different pin.</p>
+          `,
+        },
+        {
+          id: "tripwire-laser",
+          title: "Connect the line — laser",
+          checkpoint: "Laser S is on GPIO 25. I know 25 is a digital output so HIGH can keep the beam on. The beam is aimed at the LDR.",
+          facilitator: "If the laser never lights, ask VCC rating (3.3 vs 5) and whether they used the S pin. Do not aim at eyes.",
+          html: `
+            <p>What would happen if the laser were wired to GPIO 34? That pin cannot drive an output. The beam would stay dead.</p>
+            <table class="data-table">
+              <thead><tr><th>Laser pin</th><th>Goes to</th><th>Job</th></tr></thead>
+              <tbody>
+                <tr><td>S (control)</td><td>GPIO 25</td><td>Digital out. Code will set HIGH so the beam stays on</td></tr>
+                <tr><td>VCC</td><td>3.3V or 5V (read the module)</td><td>Power. 5V is fine for VCC if the datasheet says so — keep S on 25</td></tr>
+                <tr><td>GND</td><td>GND</td><td>Common 0 V</td></tr>
+              </tbody>
+            </table>
+            <p>Aim the dot at the LDR window. If the dot misses, Serial will look like the beam is always broken.</p>
+            <div class="callout warn">
+              <p>Do not look into the beam. Treat it like a tiny spotlight, not a toy pointer at faces.</p>
+            </div>
+          `,
+        },
+        {
+          id: "tripwire-see",
+          title: "See the number move",
+          checkpoint: "I wrote a beam-on number and a hand-block number from Serial at 115200. I know which way the number moves on my module.",
+          facilitator: "Have them write two numbers on paper. This kit is expected to fall when blocked. 1800 is only a midpoint guess after they have both readings.",
+          html: `
+            <p>Do not add the buzzer yet. You are still teaching the chip what “beam there” looks like.</p>
+            <div class="callout">
+              <p>This short snippet only prints numbers. It is not the finished tripwire. The full sketch (threshold, INTRUDER DETECTED, buzzer) is on the last Lab 2 card, <strong>Working model</strong>.</p>
+            </div>
+            <p>In Arduino IDE: New sketch, paste only this, upload, open Serial Monitor. Click the baud box below if 115200 is not obvious.</p>
+            <div class="accordion">
+              <details>
+                <summary>Click to enlarge — set baud 115200 and read the values</summary>
+                <p>Tools → Serial Monitor. Bottom-right dropdown = <strong>115200</strong>, same as <code>Serial.begin(115200)</code> in the snippet. Mismatch prints junk.</p>
+                <table class="data-table">
+                  <thead><tr><th>On the desk</th><th>Typical Serial number on this module</th></tr></thead>
+                  <tbody>
+                    <tr><td>Laser on the LDR</td><td>Higher (more light) — write this as beam-on</td></tr>
+                    <tr><td>Hand in the beam</td><td>Lower (less light) — write this as beam-off</td></tr>
+                    <tr><td>Threshold later</td><td>A number <em>between</em> those two. 1800 is only a starting guess if it sits in that gap.</td></tr>
+                  </tbody>
+                </table>
+              </details>
+            </div>
+            <div class="code-block"><header><span>see_the_beam.ino</span><button type="button" class="copy-btn">Copy</button></header><pre>const int LDR_PIN = 34;
+const int LASER_PIN = 25;
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(LASER_PIN, OUTPUT);
+  digitalWrite(LASER_PIN, HIGH);
+}
+
+void loop() {
+  Serial.println(analogRead(LDR_PIN));
+  delay(200);
+}</pre></div>
+            <ol>
+              <li>Beam on the LDR — write the number. That is NORMAL for your desk.</li>
+              <li>Hand in the beam — write the number. That is INTRUDER for your desk.</li>
+            </ol>
+            <p>On <strong>this</strong> module the blocked reading should be <em>smaller</em>. A starting midpoint of <code>1800</code> only makes sense if it sits between your two numbers. If it does not, use the midpoint of <em>your</em> pair.</p>
+            <p class="note">Code later will treat <code>lightValue &lt; THRESHOLD</code> as INTRUDER.</p>
+          `,
+        },
+        {
+          id: "tripwire-buzzer",
+          title: "Connect the shout — buzzer",
+          checkpoint: "Buzzer SIG is on GPIO 27. I can say why it waited until after Serial numbers: the shout should follow a real decision, not a guess.",
+          html: `
+            <p>Now the analog eye has spoken. Give the decision a voice.</p>
+            <table class="data-table">
+              <thead><tr><th>Buzzer pin</th><th>Goes to</th><th>Job</th></tr></thead>
+              <tbody>
+                <tr><td>SIG (or + / S)</td><td>GPIO 27</td><td>Digital out. HIGH = alarm, LOW = quiet</td></tr>
+                <tr><td>VCC</td><td>3.3V or 5V per the module</td><td>Power</td></tr>
+                <tr><td>GND</td><td>GND</td><td>Common 0 V</td></tr>
+              </tbody>
+            </table>
+            <p>GPIO 27 can output. GPIO 34 cannot. That is why the buzzer never sat on the LDR pin.</p>
           `,
         },
         {
           id: "tripwire-run",
-          title: "Upload, beam, door buttons",
-          checkpoint: "Beam-break closes the servo and shows INTRUDER on the page. Open and Close on the page move the door.",
+          title: "Working model",
+          checkpoint: "Hand through the beam: Serial says INTRUDER DETECTED and the buzzer is on. Beam restored: NORMAL and quiet. I used my threshold, not a magic number I never measured.",
+          facilitator: "If it never alarms, ask which of the two Serial numbers is smaller. If it always alarms, ask whether the laser still hits the LDR.",
           html: `
-            <p>Join IntruderLab. Page shows NORMAL / INTRUDER DETECTED plus Open door / Close door. Breaking the beam should close. Buttons should move the servo even without a break.</p>
+            <p class="lede">This is the full program. Replace the short number-only snippet with this file. Baud 115200.</p>
+            <p>File → Open <code>sketches/tripwire/tripwire.ino</code> if you have the afternoon zip. Or New sketch, paste the block below, save as <code>tripwire.ino</code>.</p>
+            <p>Put <strong>your</strong> midpoint in <code>THRESHOLD</code> if 1800 is not between the two numbers you wrote.</p>
+            <div class="code-block"><header><span>tripwire.ino</span><button type="button" class="copy-btn">Copy</button></header><pre>const int LDR_PIN = 34;
+const int LASER_PIN = 25;
+const int BUZZER_PIN = 27;
+
+const int THRESHOLD = 1800;  // replace with the midpoint of your two Serial numbers
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(LDR_PIN, INPUT);
+  pinMode(LASER_PIN, OUTPUT);
+  pinMode(BUZZER_PIN, OUTPUT);
+
+  digitalWrite(LASER_PIN, HIGH);
+  digitalWrite(BUZZER_PIN, LOW);
+
+  Serial.println("ESP32 INTRUDER DETECTION");
+  Serial.println("Laser tripwire started. Status: NORMAL");
+}
+
+void loop() {
+  int lightValue = analogRead(LDR_PIN);
+
+  Serial.print("Light Value: ");
+  Serial.println(lightValue);
+
+  if (lightValue &lt; THRESHOLD) {
+    Serial.println("INTRUDER DETECTED");
+    digitalWrite(BUZZER_PIN, HIGH);
+  } else {
+    Serial.println("NORMAL");
+    digitalWrite(BUZZER_PIN, LOW);
+  }
+
+  delay(200);
+}</pre></div>
+            <table class="data-table">
+              <thead><tr><th>Buzzer / laser / LDR pin</th><th>Goes to</th><th>What that wire is for</th></tr></thead>
+              <tbody>
+                <tr><td>LDR AO</td><td>GPIO 34</td><td>Sense — analog number 0–4095</td></tr>
+                <tr><td>LDR VCC</td><td>3.3V</td><td>Power for the LDR</td></tr>
+                <tr><td>LDR GND</td><td>GND</td><td>Common 0 V</td></tr>
+                <tr><td>Laser S</td><td>GPIO 25</td><td>Control — HIGH keeps the beam on</td></tr>
+                <tr><td>Laser VCC</td><td>3.3V or 5V (read the laser board)</td><td>Power for the laser</td></tr>
+                <tr><td>Laser GND</td><td>GND</td><td>Common 0 V</td></tr>
+                <tr><td>Buzzer SIG (also + or I/O)</td><td>GPIO 27</td><td>Control — HIGH = shout, LOW = quiet</td></tr>
+                <tr><td>Buzzer VCC</td><td>3.3V or 5V (read the buzzer board)</td><td>Power for the buzzer — not a GPIO</td></tr>
+                <tr><td>Buzzer GND</td><td>GND</td><td>Common 0 V</td></tr>
+              </tbody>
+            </table>
+            <p>Hand through the beam. Serial should flip to INTRUDER DETECTED and the buzzer should sound. Pull the hand away: NORMAL, quiet.</p>
           `,
         },
       ],
@@ -274,7 +487,7 @@ window.PLAYBOOK = {
           id: "wrap",
           title: "You built three loops",
           html: `
-            <p class="lede">Each lab was sense → decide → act: sound interrupts lights, light interrupts a door, time measures a human.</p>
+            <p class="lede">Each lab was sense → decide → act: sound interrupts lights, a broken beam shouts on the buzzer, time measures a human.</p>
             <p>If something failed, change one wire or one number at a time. Baud 115200. ADC1 pins for analog after Wi-Fi.</p>
           `,
         },

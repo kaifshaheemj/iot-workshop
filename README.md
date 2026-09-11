@@ -43,4 +43,4 @@ Use the afternoon zip when students join an ESP32 access point and lose campus i
 | `sketches/traffic`, `tripwire`, `reaction` | Afternoon pack only |
 | `playbook/` | Earlier single tripwire draft |
 
-Default pins (change in CONTEXT, then in the sketch `#define` lines): traffic R/Y/G 25/26/27, sound 34; tripwire LDR 34, LED 5, servo 13; reaction LEDs 25/26/27, button 4.
+Default pins (change in CONTEXT, then in the sketch `#define` / `const int` lines): traffic R/Y/G 25/26/27, sound 34; tripwire LDR 34, laser 25, buzzer 27; reaction LEDs 25/26/27, button 4.
