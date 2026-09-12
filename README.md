@@ -5,7 +5,6 @@ Morning is a 75-minute presentation followed by eight guided hardware exercises.
 ## Student URLs (after GitHub Pages is on)
 
 - Playbook: `https://<org>.github.io/<repo>/workshop/`
-- Morning slides: `https://<org>.github.io/<repo>/workshop/slides.html`
 
 Enable Pages in the repo: Settings → Pages → Source **GitHub Actions**.
 
@@ -25,19 +24,15 @@ CI uploads artifacts on every push, and attaches them to git tags:
 
 Use the afternoon zip when students join an ESP32 access point and lose campus internet.
 
-## Update the morning deck
+## Update the presentations
 
-1. Edit the source PowerPoint deck under `presentations/`.
-2. Keep the canonical filenames `From-Sensors-to-Smart-Systems.pptx` and `IOT-Workshop-Prep-Book.pptx`.
-3. Export every workshop-presentation slide at 1600×900 PNG.
-4. Replace `workshop/slides/images/01.png` through `20.png`, preserving the numeric order and removing stale numbered images.
-5. Update the presentation title in `workshop/slides.js` if it changed, then push. Pages republishes automatically.
+Replace the source decks under `presentations/` while keeping the canonical filenames `From-Sensors-to-Smart-Systems.pptx` and `IOT-Workshop-Prep-Book.pptx`. Push the change and Pages republishes the download files automatically.
 
 ## Repo map
 
 | Path | Who |
 |---|---|
-| `workshop/` | Student day app + browser presentation viewer |
+| `workshop/` | Student day playbook |
 | `presentations/` | Canonical prep-book and workshop PowerPoint sources |
 | `sketches/exercises/` | Morning Exercises 1–8 with circuit diagrams |
 | `sketches/traffic`, `tripwire`, `reaction` | Afternoon project pack |

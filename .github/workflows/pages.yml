@@ -39,6 +39,14 @@ jobs:
           mkdir -p _site/workshop
           cp -a src-main/workshop/. _site/workshop/
           touch _site/.nojekyll _site/workshop/.nojekyll
+          if [ -d src-main/sketches ]; then
+            mkdir -p _site/sketches
+            cp -a src-main/sketches/. _site/sketches/
+          fi
+          if [ -d src-main/presentations ]; then
+            mkdir -p _site/presentations
+            cp -a src-main/presentations/. _site/presentations/
+          fi
 
           if [ -d src-nithish/workshop ]; then
             mkdir -p _site/nithish/workshop
@@ -68,7 +76,6 @@ jobs:
             '<title>University IoT workshop</title>' \
             '</head><body>' \
             '<p><a href="workshop/">Workshop playbook (main)</a></p>' \
-            '<p><a href="workshop/slides.html">Morning slides (main)</a></p>' \
             '<p><a href="nithish/workshop/">Nithish preview</a></p>' \
             '</body></html>' > _site/index.html
       - uses: actions/upload-pages-artifact@v3

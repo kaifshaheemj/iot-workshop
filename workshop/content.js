@@ -109,8 +109,7 @@ window.PLAYBOOK = {
               <p>Follow one recurring challenge through ESP32 foundations, inputs, outputs, Arduino structure, communication, debugging, Wi-Fi, and the sense → decide → act → communicate model.</p>
             </section>
             <div class="presentation-actions">
-              <a class="download-link primary-link" href="slides.html">Open the presentation<span aria-hidden="true">→</span></a>
-              <a class="download-link" href="../presentations/From-Sensors-to-Smart-Systems.pptx" download>Download the workshop presentation<span aria-hidden="true">↓</span></a>
+              <a class="download-link primary-link" href="../presentations/From-Sensors-to-Smart-Systems.pptx" download>Download the workshop presentation<span aria-hidden="true">↓</span></a>
               <a class="download-link" href="../presentations/IOT-Workshop-Prep-Book.pptx" download>Download the prep book<span aria-hidden="true">↓</span></a>
             </div>
             <div class="concept-grid three">
@@ -118,7 +117,6 @@ window.PLAYBOOK = {
               <article><p class="concept-label">Part 2</p><h3>Physical interfaces</h3><p>Buttons, sensors, LEDs, displays, motors, buses, and wireless links.</p></article>
               <article><p class="concept-label">Part 3</p><h3>From code to IoT</h3><p>Arduino structure, compilation, Serial debugging, SoftAP, and web requests.</p></article>
             </div>
-            <div class="callout"><p><strong>Use both views:</strong> the browser presentation works fullscreen and offline; the original PowerPoint is available when speaker notes or editing are needed.</p></div>
           `,
         },
       ],
